@@ -3,8 +3,7 @@
 @php
 
 $id = Auth::user()->id;
-$StudentData = App\Models\User::findOrFail(Auth::user()->id);
-$studentphoto = App\Models\Student::where('user_id', $id)->first();
+$salesPerson = App\Models\User::findOrFail(Auth::user()->id);
 
 
 @endphp
@@ -16,11 +15,11 @@ $studentphoto = App\Models\Student::where('user_id', $id)->first();
     <!-- User details -->
     <div class="user-profile text-center mt-3">
         <div class="">
-            <img src="{{ empty($studentphoto->photo)? asset('uploads/no_image.png') : asset('uploads/student_photos/'.$studentphoto->photo)}}"  alt="" class="avatar-md rounded-circle">
+            <img src="{{ empty($salesPerson->photo)? asset('uploads/no_image.png') : asset('uploads/student_photos/'.$salesPerson->photo)}}"  alt="" class="avatar-md rounded-circle">
         </div>
         <div class="mt-3">
-            <h4 class="font-size-16 mb-1">{{ucwords(strtolower($studentphoto->name))}}</h4>
-            <span class="text-muted"><i class="ri-record-circle-line align-middle font-size-14 text-success"></i>{{$StudentData->user_name}}</span>
+            <h4 class="font-size-16 mb-1">{{ucwords(strtolower($salesPerson->name))}}</h4>
+            <span class="text-muted"><i class="ri-record-circle-line align-middle font-size-14 text-success"></i>{{$salesPerson->user_name}}</span>
         </div>
     </div>
 
@@ -31,7 +30,7 @@ $studentphoto = App\Models\Student::where('user_id', $id)->first();
             <li class="menu-title">MAIN CATEGORY</li>
 
             <li>
-                <a href="{{route('student.dashboard')}}" class="waves-effect">
+                <a href="{{route('sales_person.dashboard')}}" class="waves-effect">
                     <i class="ri-dashboard-line"></i>
                     <span>Dashboard</span>
                 </a>
@@ -46,7 +45,7 @@ $studentphoto = App\Models\Student::where('user_id', $id)->first();
                     <span>My Subjects</span>
                 </a>
                 <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="{{route('student.subjects')}}">My Subjects</a></li>
+                    <li><a href="">My Subjects</a></li>
                    
                 
                 
@@ -60,7 +59,7 @@ $studentphoto = App\Models\Student::where('user_id', $id)->first();
                     <span> CBT Question</span>
                 </a>
                 <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="{{route('student.index')}}">Attempt CBT</a></li>
+                    <li><a href="#">Attempt CBT</a></li>
                    
                 
                 
@@ -73,7 +72,7 @@ $studentphoto = App\Models\Student::where('user_id', $id)->first();
                     <span>Profile</span>
                 </a>
                 <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="{{route('student.profile')}}">View Profile</a></li>
+                    <li><a href="#">View Profile</a></li>
 
                 
                 </ul>
@@ -82,7 +81,7 @@ $studentphoto = App\Models\Student::where('user_id', $id)->first();
 
 
              <li>
-                 <a class="dropdown-item text-danger" href="{{route('student.logout')}}">
+                 <a class="dropdown-item text-danger" href="#">
                 <i class="ri-shut-down-line align-middle me-1 text-danger"></i>
                     <span>Logout</span>
                 </a>

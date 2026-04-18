@@ -32,9 +32,8 @@
 
 /* TABLE */
 table{
-    width:100%;
     border-collapse:collapse;
-    min-width:900px;
+    width:100%;
 }
 
 /* STICKY HEADER */
@@ -54,15 +53,14 @@ td{
     padding:12px;
     border-bottom:1px solid #eee;
     white-space:nowrap;
+    vertical-align: middle; /* ✅ FIX */
 }
 
 /* ACTION BUTTON RESPONSIVE */
-td:last-child{
-    display:flex;
-    flex-wrap:wrap;
-    gap:5px;
+td:last-child a{
+    display:inline-block;
+    margin:2px;
 }
-
 /* BUTTONS */
 .btn{
     padding:6px 10px;
@@ -132,64 +130,42 @@ td:last-child{
 
 <input type="text" id="globalSearch" class="search-box" placeholder="Search product, category, date...">
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr>
-<th>Product</th>
-<th>Category</th>
-<th>Qty</th>
-<th>Description</th>
-<th>Cost Price</th>
-<th>Date Purchased</th>
-<th>Date Created</th>
-<th>Image</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody>
-@foreach($records as $row)
-<tr>
-<td>{{ $row->product_name }}</td>
-<td>{{ $row->category }}</td>
-<td>{{ $row->quantity }}</td>
-<td>{{ $row->description }}</td>
-<td>₦{{ number_format($row->cost_price, 2) }}</td>
-<td>{{ \Carbon\Carbon::parse($row->purchase_date)->format('d M Y') }}</td>
-<td>{{ $row->created_at->format('d M Y') }}</td>
-
-<td>
-@if($row->image)
-<img src="{{ asset('uploads/NewStockArrival/'.$row->image) }}" width="50">
-@endif
-</td>
-
-<td>
-<a href="{{ route('stocks.edit', $row->id) }}" class="btn btn-edit">Edit</a>
-
-<a href="{{ route('stocks.delete', $row->id) }}" 
-   class="btn btn-delete" id="delete">Delete</a>
-</td>
-
-</tr>
-@endforeach
-</tbody>
-</table>
+<div id="table-data" class="table-wrapper">
+    @include('backend.new_stock_arrival.partials.history_table')
 </div>
 
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-document.getElementById('globalSearch').addEventListener('keyup', function () {
-    let value = this.value.toLowerCase();
-    let rows = document.querySelectorAll("tbody tr");
 
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(value) ? "" : "none";
-    });
+// 🔍 LIVE SEARCH
+$('#globalSearch').on('keyup', function(){
+    fetchData(1);
 });
+
+// 🔥 PAGINATION CLICK (NO RELOAD)
+$(document).on('click', '.pagination a', function(e){
+    e.preventDefault();
+
+    let page = $(this).attr('href').split('page=')[1];
+    fetchData(page);
+});
+
+// 🔥 FETCH DATA FUNCTION
+function fetchData(page = 1){
+
+    let query = $('#globalSearch').val();
+
+    $.ajax({
+        url: window.location.pathname + "?page=" + page + "&search=" + query,
+        success: function(data){
+            $('#table-data').html(data);
+        }
+    });
+}
+
 </script>
 
 @endsection

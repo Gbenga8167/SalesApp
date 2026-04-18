@@ -68,33 +68,77 @@ class NewStockArrivalController extends Controller
     }
 
 
-    //MANAGE STOCK METHOD
-    public function manageStocks(){
-    $stocks = NewStockArrival::select(
+// ================== MANAGE STOCK ==================
+public function manageStocks(Request $request){
+
+    $query = DB::table('new_stock_arrivals')
+        ->select(
             'product_name',
             'category',
             DB::raw('SUM(quantity) as total_quantity')
         )
-        ->groupBy('product_name', 'category')
-        ->orderBy('product_name')
-        ->get();
+        ->groupBy('product_name', 'category');
+
+    // 🔍 SEARCH
+    if($request->search){
+        $query->where(function($q) use ($request){
+            $q->where('product_name', 'like', '%'.$request->search.'%')
+              ->orWhere('category', 'like', '%'.$request->search.'%');
+        });
+    }
+
+    $stocks = $query->orderBy('product_name')
+        ->paginate(5)
+        ->withQueryString();
+
+    // 🔥 AJAX RESPONSE
+    if($request->ajax()){
+        return view('backend.new_stock_arrival.partials.manage_table', compact('stocks'))->render();
+    }
 
     return view('backend.new_stock_arrival.manage', compact('stocks'));
 }
 
 
-//MANAGE STOCK HISTORY
-public function stockHistory(Request $request){
 
-    $records = NewStockArrival::where('product_name', $request->product_name)
-        ->where('category', $request->category)
-        ->latest()
-        ->get();
+// ================== STOCK HISTORY ==================
+public function stockHistory(Request $request, $product, $category){
 
-    $total = $records->sum('quantity');
+    $query = NewStockArrival::where('product_name', $product)
+        ->where('category', $category);
 
-    return view('backend.new_stock_arrival.history', compact('records', 'total'));
+    // 🔍 SEARCH (ALL FIELDS 🔥)
+    if($request->search){
+        $search = $request->search;
+
+        $query->where(function($q) use ($search){
+            $q->where('product_name', 'like', "%$search%")
+              ->orWhere('category', 'like', "%$search%")
+              ->orWhere('description', 'like', "%$search%")
+              ->orWhere('cost_price', 'like', "%$search%")
+              ->orWhere('quantity', 'like', "%$search%")
+              ->orWhere('purchase_date', 'like', "%$search%")
+              ->orWhere('created_at', 'like', "%$search%");
+        });
+    }
+
+    $records = $query->latest()
+        ->paginate(5)
+        ->withQueryString();
+
+    $total = NewStockArrival::where('product_name', $product)
+        ->where('category', $category)
+        ->sum('quantity');
+
+    if($request->ajax()){
+        return view('backend.new_stock_arrival.partials.history_table', compact('records'))->render();
+    }
+
+    return view('backend.new_stock_arrival.history', compact(
+        'records','total','product','category'
+    ));
 }
+
 
 
 //EDIT STOCK
@@ -147,10 +191,11 @@ public function updateStock(Request $request, $id)
         'image' => $stock->image ?? null,
     ]);
 
-    return redirect()->route('stocks.history', [
-        'product_name' => $request->product_name,
-        'category' => $request->category
-    ])->with('success', 'Stock updated successfully!');
+       $product = $request->product_name;
+       $category = $request->category;
+
+      return redirect()->route('stocks.history', [$product, $category])
+       ->with('success', 'Stock updated successfully!');
 }//END UPDATE STOCK
 
 

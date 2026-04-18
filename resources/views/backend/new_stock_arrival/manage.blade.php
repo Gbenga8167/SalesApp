@@ -156,53 +156,42 @@ td:last-child{
 
 <input type="text" id="globalSearch" class="search-box" placeholder="Search product, category...">
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr>
-<th>Product</th>
-<th>Category</th>
-<th>All Stock</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody>
-@foreach($stocks as $stock)
-<tr>
-<td>{{ $stock->product_name }}</td>
-<td>{{ $stock->category }}</td>
-<td><strong>{{ $stock->total_quantity }}</strong></td>
-<td>
-
-<a href="{{ route('stocks.history', ['product_name'=>$stock->product_name,'category'=>$stock->category]) }}" 
-   class="action-btn btn-history">History</a>
-
-<a href="{{ route('stocks.history', ['product_name'=>$stock->product_name,'category'=>$stock->category]) }}" 
-   class="action-btn btn-edit">Edit</a>
-
-<a href="{{ route('stocks.create') }}" 
-   class="action-btn btn-add">Add</a>
-
-</td>
-</tr>
-@endforeach
-</tbody>
-</table>
+<div id="table-data" class="table-wrapper">
+    @include('backend.new_stock_arrival.partials.manage_table')
 </div>
 
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-document.getElementById('globalSearch').addEventListener('keyup', function () {
-    let value = this.value.toLowerCase();
-    let rows = document.querySelectorAll("tbody tr");
 
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(value) ? "" : "none";
-    });
+// 🔍 LIVE SEARCH
+$('#globalSearch').on('keyup', function(){
+    fetchData(1);
 });
+
+// 🔥 PAGINATION CLICK (NO RELOAD)
+$(document).on('click', '.pagination a', function(e){
+    e.preventDefault();
+
+    let page = $(this).attr('href').split('page=')[1];
+    fetchData(page);
+});
+
+// 🔥 FETCH DATA FUNCTION
+function fetchData(page = 1){
+
+    let query = $('#globalSearch').val();
+
+    $.ajax({
+        url: window.location.pathname + "?page=" + page + "&search=" + query,
+        success: function(data){
+            $('#table-data').html(data);
+        }
+    });
+}
+
 </script>
 
 @endsection

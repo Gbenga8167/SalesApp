@@ -1,201 +1,162 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        .school-name {
-    font-family: "Poppins", "Segoe UI", Roboto, Arial, sans-serif;
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: 3px;    
-    color: #ffffff;
-    white-space: nowrap;
-    opacity: 0.95;
+<header id="page-topbar">
+
+<style>
+
+/* 🔥 IMPORT NICE FONT */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* 🔥 HEADER BACKGROUND */
+#page-topbar{
+    background: linear-gradient(90deg, #198754, #157347);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+/* 🔥 APPLY FONT */
+#page-topbar *{
+    font-family: 'Poppins', sans-serif;
+}
 
+/* 🔥 CENTER COMPANY NAME */
+.company-title{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #f8f9fa;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
 
-    </style>
-</head>
-<body>
-  
+/* 🔥 HIDE ON MOBILE */
+@media (max-width: 768px){
+    .company-title{
+        display: none;
+    }
+}
 
+/* 🔥 LOGO STYLE */
+.logo-img{
+    height: 42px;
+    width: 42px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
 
-<header id="page-topbar">
-    <div class="navbar-header d-flex align-items-center justify-content-between">
+/* 🔥 BUTTONS */
+.header-item{
+    color: #f8f9fa !important;
+}
 
-        <!-- LEFT: LOGO + MENU -->
-        <div class="d-flex align-items-center">
-            <div class="navbar-brand-box">
-                <a href="{{ route('student.dashboard') }}" class="logo d-flex align-items-center text-decoration-none">
-                   <!-- <img src="{{ asset('uploads/bg1.jpg') }}"
-                         alt="School Logo"
-                         style="height:40px; width:auto;">-->
-                                  <span style="font-size:25px; color:#fff;">
-                                   CBT
-                                </span>
-                </a>
-            </div>
+/* 🔥 USER NAME */
+.user-dropdown span{
+    color: #f8f9fa;
+    font-weight: 500;
+}
 
-            <button type="button"
-                class="btn btn-sm px-3 font-size-24 header-item waves-effect"
-                id="vertical-menu-btn">
-                <i class="ri-menu-2-line align-middle"></i>
+/* 🔥 ICON HOVER */
+.header-item:hover{
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+}
+
+/* 🔥 DROPDOWN */
+.dropdown-menu{
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+</style>
+
+<div class="navbar-header position-relative">
+
+    {{-- 🔥 FETCH SETTINGS --}}
+    @php
+        $settings = App\Models\Setting::first();
+        $adminData = App\Models\User::findOrFail(Auth::user()->id);
+    @endphp
+
+    {{-- 🔥 CENTER COMPANY NAME --}}
+<div class="company-title">
+    {{ ucwords($settings->company_name ?? 'your company name') }}
+</div>
+
+    <div class="d-flex">
+
+        <!-- LOGO -->
+        <div class="navbar-brand-box">
+            <a href="{{ route('admin.dashboard') }}" class="logo">
+
+                @if(!empty($settings->logo))
+                    <img src="{{ asset('uploads/settings/'.$settings->logo) }}" 
+                         class="logo-img">
+                @else
+                    <img src="{{ asset('uploads/no_image.png') }}" 
+                         class="logo-img">
+                @endif
+
+            </a>
+        </div>
+
+        <!-- MENU BUTTON -->
+        <button type="button" 
+            class="btn btn-sm px-3 font-size-24 header-item waves-effect" 
+            id="vertical-menu-btn">
+            <i class="ri-menu-2-line align-middle"></i>
+        </button>
+
+    </div>
+
+    <div class="d-flex">
+
+        <!-- FULLSCREEN -->
+        <div class="dropdown d-none d-lg-inline-block ms-1">
+            <button type="button" class="btn header-item noti-icon waves-effect" data-toggle="fullscreen">
+                <i class="ri-fullscreen-line"></i>
             </button>
         </div>
 
-     <!--  <div class="d-none d-md-flex flex-grow-1 justify-content-center">
-    <span class="school-name">
-        <label style="color:red">V</label> <label style="color: #f7bf08ff;">G</label> <label style="color:dodgerblue">C</label> International School
-    </span>
-       </div> -->
+        <!-- USER DROPDOWN -->
+        <div class="dropdown d-inline-block user-dropdown">
+            <button type="button" class="btn header-item waves-effect"
+                data-bs-toggle="dropdown">
 
+                <img class="rounded-circle header-profile-user"
+                    src="{{ empty($adminData->photo) 
+                        ? asset('uploads/no_image.png') 
+                        : asset('uploads/admin_profile/'.$adminData->photo) }}">
 
-        <!-- RIGHT: USER / ACTIONS -->
-        <div class="d-flex align-items-center">
+                <span class="d-none d-xl-inline-block ms-1">
+                    {{ $adminData->name }}
+                </span>
 
-            <div class="dropdown d-none d-lg-inline-block ms-1">
-                <button type="button" class="btn header-item noti-icon waves-effect" data-toggle="fullscreen">
-                    <i class="ri-fullscreen-line"></i>
-                </button>
+                <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-end">
+
+                <a class="dropdown-item" href="{{ route('sales.person.profile') }}">
+                    <i class="ri-user-line align-middle me-1"></i> Profile
+                </a>
+
+                <a class="dropdown-item" href="{{ route('admin.password.change') }}">
+                    <i class="ri-lock-line align-middle me-1"></i> Change Password
+                </a>
+
+                <div class="dropdown-divider"></div>
+
+                <a class="dropdown-item text-danger" href="{{ route('sales.person.logout') }}">
+                    <i class="ri-shut-down-line align-middle me-1 text-danger"></i> Logout
+                </a>
+
             </div>
-
-            @php
-                $id = Auth::user()->id;
-                $studentphoto = App\Models\Student::where('user_id', $id)->first();
-            @endphp
-
-            <div class="dropdown d-inline-block user-dropdown">
-                <button type="button"
-                    class="btn header-item waves-effect"
-                    id="page-header-user-dropdown"
-                    data-bs-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-
-                    <img class="rounded-circle header-profile-user"
-                        src="{{ empty($studentphoto->photo) 
-                            ? asset('uploads/no_image.png') 
-                            : asset('uploads/student_photos/'.$studentphoto->photo) }}"
-                        alt="Header Avatar">
-
-                    <span class="d-none d-xl-inline-block ms-1">
-                        {{ $studentphoto->name }}
-                    </span>
-
-                    <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
-                </button>
-
-                <div class="dropdown-menu dropdown-menu-end">
-                    <a class="dropdown-item" href="{{ route('student.profile') }}">
-                        <i class="ri-user-line align-middle me-1"></i> Profile
-                    </a>
-
-                    <div class="dropdown-divider"></div>
-
-                    <a class="dropdown-item text-danger" href="{{ route('student.logout') }}">
-                        <i class="ri-shut-down-line align-middle me-1 text-danger"></i> Logout
-                    </a>
-                </div>
-            </div>
-
         </div>
+
     </div>
-</header>
 
-<!--
-<header id="page-topbar">
-                <div class="navbar-header">
-                    <div class="d-flex">
-                        <!-- LOGO 
-                        <div class="navbar-brand-box">
-                            <a href="{{route('student.dashboard')}}" class="logo \">
-                                <span style="font-size:25px; color:#fff;">
-                                   CBT
-                                </span>
-                               
-                            </a>
+</div>
 
-                 
-                        </div>
-
-                        <button type="button" class="btn btn-sm px-3 font-size-24 header-item waves-effect" id="vertical-menu-btn">
-                            <i class="ri-menu-2-line align-middle"></i>
-                        </button>
-
-                        <!-- App Search
-                        <form class="app-search d-none d-lg-block">
-                            <div class="position-relative">
-                                <input type="text" class="form-control" placeholder="Search...">
-                                <span class="ri-search-line"></span>
-                            </div>
-                        </form>
-
-                        
-                    </div>
-
-                    <div class="d-flex">
-
-                        <div class="dropdown d-inline-block d-lg-none ms-2">
-                            <button type="button" class="btn header-item noti-icon waves-effect" id="page-header-search-dropdown"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="ri-search-line"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
-                                aria-labelledby="page-header-search-dropdown">
-                    
-                                <form class="p-3">
-                                    <div class="mb-3 m-0">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search ...">
-                                            <div class="input-group-append">
-                                                <button class="btn btn-primary" type="submit"><i class="ri-search-line"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        @php
-                        
-                        $id = Auth::user()->id;
-                        $StudentData = App\Models\User::findOrFail(Auth::user()->id);
-                        $studentphoto = App\Models\Student::where('user_id', $id)->first();
-
-                        @endphp
-                        
-                        <div class="dropdown d-none d-lg-inline-block ms-1">
-                            <button type="button" class="btn header-item noti-icon waves-effect" data-toggle="fullscreen">
-                                <i class="ri-fullscreen-line"></i>
-                            </button>
-                        </div>
-
-
-                        <div class="dropdown d-inline-block user-dropdown">
-                            <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
-                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img class="rounded-circle header-profile-user" src="{{ empty($studentphoto->photo)? asset('uploads/no_image.png') : asset('uploads/student_photos/'.$studentphoto->photo)}}" 
-                                    alt="Header Avatar">
-                                <span class="d-none d-xl-inline-block ms-1" style="">{{ $studentphoto->name}}</span>
-                                <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <!-- item
-                                <a class="dropdown-item" href="{{route('student.profile')}}"><i class="ri-user-line align-middle me-1"></i> Profile</a>
-
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item text-danger" href="{{route('student.logout')}}"><i class="ri-shut-down-line align-middle me-1 text-danger"></i> Logout</a>
-                            </div>
-                        </div>
-
-                        
-                    </div>
-                </div>
-            </header>
-
-
-</body>
-</html>
+</header> 

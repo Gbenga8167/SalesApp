@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleWare;
-use App\Http\Middleware\SalesPersonMiddleWare;
+use App\Http\Middleware\SalesPersonAccountMiddleWare;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
                //Register The Middleware
         $middleware->alias([
             'admin' => AdminMiddleWare::class,
-            'salesPerson' => SalesPersonMiddleWare::class,
+            'sales.person' => SalesPersonAccountMiddleWare::class,
             'super.admin' => SuperAdminMiddleware::class,
         ]);
     })

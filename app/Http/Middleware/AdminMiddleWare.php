@@ -31,12 +31,7 @@ class AdminMiddleWare
 
           // Teacher Login role
      if($LoginUserRole == 2){
-        return redirect()->route('teacher.dashboard');
-     }
-     //Student LOgin Role
-     if( $LoginUserRole == 3){
-
-        return redirect()->route('student.dashboard');
+        return redirect()->route('sales_person.dashboard');
      }
 
     }

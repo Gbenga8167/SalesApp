@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class StudentMiddleWare
+class SalesPersonAccountMiddleWare
 {
     /**
      * Handle an incoming request.
@@ -30,7 +30,7 @@ class StudentMiddleWare
 
           // sales_person Login role
      if($LoginUserRole == 2){
-         return redirect()->route('sales_person.dashboard');
+        return $next($request);
       
      }
 

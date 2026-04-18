@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\SalespersonController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\SalesPerson\SalesPersonAccountController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,9 +27,36 @@ Route::get('/', function () {
     if ($user->role == 1) {
         return redirect()->route('admin.dashboard');
     } elseif ($user->role == 2) {
-        return redirect()->route('salesperson.dashboard');
+        return redirect()->route('sales_person.dashboard');
     } 
 })->middleware('auth');
+
+
+
+
+
+
+
+//sales_person_backend Route for student dashboard
+Route::get('/sales-person/dashboard', function () {
+    return view('backend.sales_person_backend.sales_person_index');
+})->middleware(['auth', 'verified', 'sales.person'])->name('sales_person.dashboard');
+
+
+    //Sales Person All Route  
+    Route::middleware(['auth', 'sales.person'])->group(function(){
+    //Start Student All Route  
+    Route::controller(SalesPersonAccountController::class)->group(function(){
+    Route::get('sales-person/logout','SalesPersonLogout')->name('sales.person.logout');
+    Route::get('sales-person/profile','SalesPersonProfile')->name('sales.person.profile');
+
+});
+    });
+
+
+
+
+
 
 
 
@@ -111,7 +139,8 @@ Route::get('/', function () {
 
     //MANAGE STOCK
     Route::get('/manage-stocks', 'manageStocks')->name('stocks.manage');
-    Route::get('/stock-history', 'stockHistory')->name('stocks.history');
+   // Route::get('/stock-history', 'stockHistory')->name('stocks.history');
+    Route::get('/stock-history/{product}/{category}', 'stockHistory')->name('stocks.history');
 
     //DELETE 
 
@@ -168,10 +197,6 @@ Route::get('/', function () {
 
 
 
-//sales_person_backend Route for student dashboard
-Route::get('/salesperson/dashboard', function () {
-    return view('backend.sales_person_backend.student_index');
-})->middleware(['auth', 'verified', 'salesPerson'])->name('sales_person.dashboard');
 
 
 

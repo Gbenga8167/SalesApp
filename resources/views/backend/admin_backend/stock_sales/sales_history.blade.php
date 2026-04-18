@@ -149,85 +149,51 @@ td:last-child{
 
 
 {{-- 🔍 SEARCH --}}
-<input type="text" id="globalSearch" class="search-box" placeholder="Search date, price...">
+<input type="text" id="search" class="search-box" placeholder="Search date, price...">
 
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th>Product</th>
-<th>Category</th>
-<th>Quantity</th>
-<th>Selling Price</th>
-<th>Amount (₦)</th>
-<th>Date</th>
-<th>Action</th>
-</tr>
-</thead>
+<div  id="table-data" class="table-wrapper">
 
-<tbody>
-
-@foreach($sales as $key => $row)
-<tr>
-
-<td>{{ ($sales->currentPage() - 1) * $sales->perPage() + $loop->iteration }}</td>
-
-<td>{{ $row->product_name }}</td>
-
-<td>{{ $row->category }}</td>
-
-<td>{{ $row->quantity }}</td>
-
-<td>₦{{ number_format($row->selling_price, 2) }}</td>
-
-<td>₦{{ number_format($row->amount, 2) }}</td>
-
-<td>{{ $row->created_at->format('d M Y') }}</td>
-
-<td>
-
-{{-- EDIT --}}
-<a href="{{ route('sales.edit', $row->id) }}" class="btn btn-edit">
-Edit
-</a>
-
-{{-- DELETE --}}
-<a href="{{ route('sales.delete', $row->id) }}" 
-   class="btn btn-delete"   id="delete">
-Delete
-</a>
-
-</td>
-
-</tr>
-@endforeach
-
-</tbody>
-</table>
-
-{{-- 🔥 PAGINATION --}}
-<div style="margin-top:15px;">
-    {{ $sales->links('pagination::bootstrap-5') }}
-</div>
-
+ @include('backend.admin_backend.stock_sales.partials.history_table')
 
 </div>
 
 
 
 {{-- 🔍 SEARCH SCRIPT --}}
-<script>
-document.getElementById('globalSearch').addEventListener('keyup', function () {
-    let value = this.value.toLowerCase();
-    let rows = document.querySelectorAll("tbody tr");
 
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(value) ? "" : "none";
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function(){
+
+    // 🔍 SEARCH
+    $('#search').on('keyup', function(){
+        let value = $(this).val();
+        fetchData(1, value);
     });
+
+    // 🔄 PAGINATION
+    $(document).on('click', '.pagination a', function(e){
+        e.preventDefault();
+
+        let page = $(this).attr('href').split('page=')[1];
+        let search = $('#search').val();
+
+        fetchData(page, search);
+    });
+
+    function fetchData(page, search = ''){
+        $.ajax({
+            url: "?page=" + page + "&search=" + search,
+            success: function(data){
+                $('#table-data').html(data);
+            }
+        });
+    }
+
 });
 </script>
+
 
 @endsection

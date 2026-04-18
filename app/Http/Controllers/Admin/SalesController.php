@@ -7,7 +7,8 @@ use App\Models\NewStockArrival;
 use App\Models\Product;
 use App\Models\Sale;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
+
+
 
 class SalesController extends Controller
 {
@@ -97,21 +98,29 @@ public function getCostPrice(Request $request)
 
 
 //MANAGE SALES  
-public function ManageStock(){
+public function ManageStock(Request $request){
 
-    // 🔥 Get grouped data FIRST
-    $sales = \DB::table('sales')
+    $query = \DB::table('sales')
         ->select(
             'product_name',
             'category',
             \DB::raw('SUM(quantity) as total_sold'),
             \DB::raw('SUM(amount) as total_amount')
         )
-        ->groupBy('product_name', 'category')
-        ->get();
+        ->groupBy('product_name', 'category');
 
-    // 🔥 Process data
-    $processed = $sales->map(function ($row) {
+    // 🔍 SEARCH
+    if($request->search){
+        $query->where(function($q) use ($request){
+            $q->where('product_name', 'like', '%'.$request->search.'%')
+              ->orWhere('category', 'like', '%'.$request->search.'%');
+        });
+    }
+
+    $sales = $query->paginate(3)->withQueryString();
+
+    // 🔥 PROCESS AFTER PAGINATION
+    $sales->getCollection()->transform(function ($row) {
 
         $totalPurchased = \DB::table('new_stock_arrivals')
             ->where('product_name', $row->product_name)
@@ -121,7 +130,7 @@ public function ManageStock(){
         $latestPrice = \DB::table('sales')
             ->where('product_name', $row->product_name)
             ->where('category', $row->category)
-            ->orderBy('id', 'desc')
+            ->latest()
             ->value('selling_price');
 
         $row->total_purchased = $totalPurchased;
@@ -131,32 +140,53 @@ public function ManageStock(){
         return $row;
     });
 
-    // 🔥 PAGINATION MANUAL
-    $perPage = 3;
-    $currentPage = request()->get('page', 1);
+    // AJAX RESPONSE
+    if($request->ajax()){
+        return view('backend.admin_backend.stock_sales.partials.manage_table', compact('sales'))->render();
+    }
 
-    $paginated = new LengthAwarePaginator(
-        $processed->forPage($currentPage, $perPage),
-        $processed->count(),
-        $perPage,
-        $currentPage,
-        ['path' => request()->url()]
-    );
-
-    return view('backend.admin_backend.stock_sales.manage_stock', [
-        'sales' => $paginated
-    ]);
+    return view('backend.admin_backend.stock_sales.manage_stock', compact('sales'));
 }
+
+
+
+
 
 //SALES HISTORY
-public function SalesHistory($product, $category){
-    $sales = Sale::where('product_name', $product)
-        ->where('category', $category)
-        ->latest()
-        ->paginate(10); // ✅ SIMPLE
+public function SalesHistory(Request $request, $product, $category){
 
-    return view('backend.admin_backend.stock_sales.sales_history', compact('sales', 'product', 'category'));
+    $query = Sale::where('product_name', $product)
+        ->where('category', $category);
+
+    // 🔍 SEARCH (ALL FIELDS 🔥)
+    if($request->search){
+        $search = $request->search;
+
+        $query->where(function($q) use ($search){
+            $q->where('product_name', 'like', "%$search%")
+              ->orWhere('category', 'like', "%$search%")
+              ->orWhere('selling_price', 'like', "%$search%")
+              ->orWhere('amount', 'like', "%$search%")
+              ->orWhere('quantity', 'like', "%$search%")
+              ->orWhere('created_at', 'like', "%$search%");
+        });
+    }
+
+    $sales = $query->latest()
+        ->paginate(5)
+        ->withQueryString();
+
+    if($request->ajax()){
+        return view('backend.admin_backend.stock_sales.partials.history_table', compact('sales'))->render();
+    }
+
+    return view('backend.admin_backend.stock_sales.sales_history', compact('sales','product','category'));
 }
+
+
+
+
+
 //SALES EDIT
 public function EditSale($id)
 {

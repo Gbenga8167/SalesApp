@@ -1,17 +1,18 @@
-@extends('backend.teacher_backend.teacher_dashboard')
-@section('teacher')
+@extends('backend.sales_person_backend.sales_person_dashboard')
+@section('salesperson')
 
     <div class="container-fluid">
 
 <!-- start page title -->
+<!-- start page title -->
 <div class="row">
     <div class="col-12">
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">TEACHER'S PROFILE</h4>
+            <h4 class="mb-sm-0">SALES PERSON PROFILE</h4>
 
             <div class="page-title-right">
                 <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Teacher</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Sales Person </a></li>
                     <li class="breadcrumb-item active">Profile</li>
                 </ol>
             </div>
@@ -26,48 +27,56 @@
         <div class="card">
             <div class="card-body">
 
-                <h4 class="card-title">TEACHER PROFILE - Update </h4>
-              
-                <form action="{{route('teacher.profile.update')}}" method="post" enctype="multipart/form-data">
-                    @csrf
+                <h4 class="card-title">Sales Person | Pfofile</h4>
+            
 
                 <div class="row mb-3">
                     <label for="example-text-input" class="col-sm-2 col-form-label">Fullname</label>
                     <div class="col-sm-10">
-                        <input class="form-control" readonly name="user_name" type="text" value="{{ $TeacherData->name }}">
+                        <input class="form-control" readonly type="text" value="{{$sales_person_data->name }}">
                     </div>
                 </div>
                 <!-- end row -->
+
+
                 <div class="row mb-3">
-                    <label for="example-search-input" class="col-sm-2 col-form-label">Email</label>
+                    <label for="example-text-input" class="col-sm-2 col-form-label">Username</label>
                     <div class="col-sm-10">
-                        <input class="form-control" name="email" readonly type="email" value="{{ $TeacherData->email }}">
+                        <input class="form-control" readonly type="text" value="{{$sales_person_data->user_name }}">
                     </div>
                 </div>
+                <!-- end row -->
+
+                <div class="row mb-3">
+                    <label for="example-text-input" class="col-sm-2 col-form-label">Gender</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" readonly type="text" value="{{$sales_person_data->gender }}">
+                    </div>
+                </div>
+                <!-- end row -->
+
+
+               
                 <!-- end row -->
                 <div class="row mb-3">
                     <label for="example-email-input" class="col-sm-2 col-form-label">Photo</label>
+                    
+                     <!-- Student Profile Photo -->
                     <div class="col-sm-10">
-                    <input type="file" class="form-control" id="image" name="photo" >
+                    <img id="ShowImage" src="{{ empty($sales_person_data->photo)? asset('uploads/no_image.png') : asset('uploads/student_photos/'.$sales_person_data->photo)}}" alt="avatar-4" class="rounded avatar-md">
+                 
                     </div>
                 </div>
                 <!-- end row -->
 
 
 
-                <!-- end row -->
-                <div class="row mb-3">
-                    <label for="example-email-input" class="col-sm-2 col-form-label"></label>
-                    <div class="col-sm-10">
-                    <img id="ShowImage" src="{{ empty($teacherphoto->photo)? asset('uploads/no_image.png') : asset('uploads/teachers_photos/'.$teacherphoto->photo)}}" alt="avatar-4" class="rounded avatar-md">
-                    </div>
-                </div>
-                <!-- end row -->
-                
+                <a  href="{{route('sales_person.dashboard')}}">
+                     <button type="submit" class="btn btn-primary waves-effect waves-light">Back</button>
+                    </a>
 
-                <button type="submit" class="btn btn-primary waves-effect waves-light">Update Profile</button>
                 
-                </form>
+                
                
                 
 

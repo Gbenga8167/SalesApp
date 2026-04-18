@@ -1,10 +1,11 @@
+
 <!doctype html>
 <html lang="en">
 
     <head>
         
         <meta charset="utf-8" />
-        <title>Teacher Dashboard </title>
+        <title>Sales Person Dashboard </title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="Themesdesign" name="author" />
@@ -39,15 +40,7 @@
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
 
-         <!--Animation Css Link-->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:..." rel="stylesheet">
-        <style>
-            body { font-family: 'Poppins', sans-serif; }
-        </style>
-
+        
     </head>
 
     <body data-topbar="dark">
@@ -58,11 +51,11 @@
         <div id="layout-wrapper">
 
    
-          @include('backend.teacher_backend.sections.header')
+          @include('backend.sales_person_backend.sections.header')
 
             <!-- ========== Left Sidebar Start ========== -->
            
-            @include('backend.teacher_backend.sections.teacher_sidebar')
+            @include('backend.sales_person_backend.sections.sidebar')
 
             <!-- Left Sidebar End -->
 
@@ -75,12 +68,12 @@
 
                 <div class="page-content">
 
-                   @yield('teacher')
+                   @yield('salesperson')
                     
                 </div>
                 <!-- End Page-content -->
                
-                @include('backend.teacher_backend.sections.footer')
+                @include('backend.sales_person_backend.sections.footer')
                 
             </div>
             <!-- end main content-->
