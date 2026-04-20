@@ -26,6 +26,7 @@ protected $fillable = [
     'phone_number',
     'state_of_origin',
     'contact_address',
+    'gender', 
     'photo',
     'role',
     'password',

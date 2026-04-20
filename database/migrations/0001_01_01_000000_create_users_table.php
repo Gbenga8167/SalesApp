@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
             $table->string('state_of_origin')->nullable();
             $table->text('contact_address')->nullable();
+            $table->string('gender')->nullable();
             $table->string('role')->default(2)->comment('1:Admin, 2:SalesPerson');
             $table->string('user_name')->nullable()->unique();
             $table->string('password');

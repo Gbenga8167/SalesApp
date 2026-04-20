@@ -172,6 +172,19 @@
             @error('phone_number') <div class="error">{{ $message }}</div> @enderror
         </div>
 
+
+         <div class="form-group">
+             <label>Gender</label>
+                      <select name="gender" class="form-control">
+                 <option value="">Select Gender</option>
+                 <option value="Male" {{ old('gender')=='Male'?'selected':'' }}>Male</option>
+                 <option value="Female" {{ old('gender')=='Female'?'selected':'' }}>Female</option>
+             </select>
+             @error('gender') <div class="error">{{ $message }}</div> @enderror
+         </div>
+
+
+         
         <!-- State -->
         <div class="form-group">
             <label>State of Origin</label>

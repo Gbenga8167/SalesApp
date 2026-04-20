@@ -20,47 +20,47 @@ class SalespersonController extends Controller
     /**
      * Store new salesperson
      */
-    public function store(Request $request)
-    {
-         //dd($request->all());
-        // ✅ VALIDATION
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'user_name' => 'required|string|max:100|unique:users,user_name',
-            'email' => 'required|email|unique:users,email',
-            'phone_number' => 'required|string|max:20',
-            'state_of_origin' => 'required|string|max:255',
-            'contact_address' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+   public function store(Request $request) 
+{
+    // ✅ VALIDATION
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'user_name' => 'required|string|max:100|unique:users,user_name',
+        'email' => 'required|email|unique:users,email',
+        'phone_number' => 'required|string|max:20',
+        'state_of_origin' => 'required|string|max:255',
+        'contact_address' => 'required|string',
+        'gender' => 'required|in:Male,Female',
+        'password' => 'required|string|min:6|confirmed',
+        'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
 
+    $photoPath = null;
 
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            //update the admin profile image in the image folder directory, to avoid show previous image repeatedly
-            @unlink(public_path('uploads/salesperson_photos'.$userPhoto->photo));
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/salesperson_photos'), $filename);
-            $photoPath =  $filename;
-        }
-
-        
-        // ✅ CREATE USER (Salesperson role = 2)
-        User::create([
-            'name' => $request->name,
-            'user_name' => $request->user_name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
-            'state_of_origin' => $request->state_of_origin,
-            'contact_address' => $request->contact_address,
-            'photo' => $photoPath,
-            'role' => 2,
-            'password' => Hash::make($request->password),
-        ]);
-
-        return redirect()->back()->with('success', 'Salesperson created successfully!');
+    // ✅ FIXED PHOTO UPLOAD (you had a bug here)
+    if ($request->hasFile('photo')) {
+        $file = $request->file('photo');
+        $filename = time() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('uploads/salesperson_photos'), $filename);
+        $photoPath = $filename;
     }
+
+    // ✅ CREATE USER
+    User::create([
+        'name' => $request->name,
+        'user_name' => $request->user_name,
+        'email' => $request->email,
+        'phone_number' => $request->phone_number,
+        'state_of_origin' => $request->state_of_origin,
+        'contact_address' => $request->contact_address,
+        'gender' => $request->gender,
+        'photo' => $photoPath,
+        'role' => 2,
+        'password' => Hash::make($request->password),
+    ]);
+
+    return redirect()->back()->with('success', 'Salesperson created successfully!');
+}
 
     
     public function ManageSalesPerson(){
@@ -85,7 +85,8 @@ public function EditSalesPerson($id)
 }
 
 
-    public function UpdateSalesPerson(Request $request, $id){
+    public function UpdateSalesPerson(Request $request, $id)
+{
     $salesperson = User::findOrFail($id);
 
     // ✅ VALIDATION
@@ -96,38 +97,37 @@ public function EditSalesPerson($id)
         'phone_number' => 'required',
         'state_of_origin' => 'required',
         'contact_address' => 'required',
-        'password' => 'nullable|min:6|confirmed', // 👈 KEY PART
+        'gender' => 'required|in:Male,Female',
+        'password' => 'nullable|min:6|confirmed',
     ]);
 
-
+    // PHOTO UPDATE
     if ($request->hasFile('photo')) {
 
-    // delete old
-    if ($salesperson->photo) {
-        $oldPath = public_path('uploads/salesperson_photos/'.$salesperson->photo);
-        if (file_exists($oldPath)) {
-            unlink($oldPath);
+        if ($salesperson->photo) {
+            $oldPath = public_path('uploads/salesperson_photos/'.$salesperson->photo);
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
         }
+
+        $file = $request->file('photo');
+        $filename = time().'.'.$file->getClientOriginalExtension();
+        $file->move(public_path('uploads/salesperson_photos'), $filename);
+
+        $salesperson->photo = $filename;
     }
 
-    // upload new
-    $file = $request->file('photo');
-    $filename = time().'.'.$file->getClientOriginalExtension();
-    $file->move(public_path('uploads/salesperson_photos'), $filename);
-
-    $salesperson->photo = $filename;
-}
-
-
-    // ✅ UPDATE BASIC INFO
+    // ✅ UPDATE DATA
     $salesperson->name = $request->name;
     $salesperson->user_name = $request->user_name;
     $salesperson->email = $request->email;
     $salesperson->phone_number = $request->phone_number;
     $salesperson->state_of_origin = $request->state_of_origin;
     $salesperson->contact_address = $request->contact_address;
+    $salesperson->gender = $request->gender;
 
-    // ✅ PASSWORD UPDATE (ONLY IF FILLED)
+    // PASSWORD
     if ($request->filled('password')) {
         $salesperson->password = Hash::make($request->password);
     }

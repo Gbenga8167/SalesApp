@@ -76,7 +76,7 @@
     {{-- 🔥 FETCH SETTINGS --}}
     @php
         $settings = App\Models\Setting::first();
-        $adminData = App\Models\User::findOrFail(Auth::user()->id);
+        $sales_person_data = App\Models\User::findOrFail(Auth::user()->id);
     @endphp
 
     {{-- 🔥 CENTER COMPANY NAME --}}
@@ -125,12 +125,12 @@
                 data-bs-toggle="dropdown">
 
                 <img class="rounded-circle header-profile-user"
-                    src="{{ empty($adminData->photo) 
+                    src="{{ empty($sales_person_data->photo) 
                         ? asset('uploads/no_image.png') 
-                        : asset('uploads/admin_profile/'.$adminData->photo) }}">
+                        : asset('uploads/salesperson_photos/'.$sales_person_data->photo) }}">
 
                 <span class="d-none d-xl-inline-block ms-1">
-                    {{ $adminData->name }}
+                    {{ $sales_person_data->name }}
                 </span>
 
                 <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>

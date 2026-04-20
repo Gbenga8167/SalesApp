@@ -56,6 +56,34 @@
                 <!-- end row -->
 
 
+                <div class="row mb-3">
+                    <label for="example-text-input" class="col-sm-2 col-form-label">Contact Address</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" readonly type="text" value="{{$sales_person_data->contact_address}}">
+                    </div>
+                </div>
+                <!-- end row -->
+
+
+
+                 <div class="row mb-3">
+                    <label for="example-text-input" class="col-sm-2 col-form-label">Phone Number</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" readonly type="text" value="{{$sales_person_data->phone_number}}">
+                    </div>
+                </div>
+                <!-- end row -->
+
+
+
+                 <div class="row mb-3">
+                    <label for="example-text-input" class="col-sm-2 col-form-label">State Of Origin</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" readonly type="text" value="{{$sales_person_data->state_of_origin }}">
+                    </div>
+                </div>
+                <!-- end row -->
+
                
                 <!-- end row -->
                 <div class="row mb-3">
@@ -63,7 +91,7 @@
                     
                      <!-- Student Profile Photo -->
                     <div class="col-sm-10">
-                    <img id="ShowImage" src="{{ empty($sales_person_data->photo)? asset('uploads/no_image.png') : asset('uploads/student_photos/'.$sales_person_data->photo)}}" alt="avatar-4" class="rounded avatar-md">
+                    <img id="ShowImage" src="{{ empty($sales_person_data->photo)? asset('uploads/no_image.png') : asset('uploads/salesperson_photos/'.$sales_person_data->photo)}}" alt="avatar-4" class="rounded avatar-md">
                  
                     </div>
                 </div>

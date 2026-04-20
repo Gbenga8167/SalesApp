@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\SalespersonController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\SalesPerson\SalesPersonAccountController;
+use App\Http\Controllers\SalesPerson\SalesPersonPOSController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -51,7 +52,31 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('sales-person/profile','SalesPersonProfile')->name('sales.person.profile');
 
 });
-    });
+
+    Route::controller(SalesPersonPOSController::class)->group(function(){
+
+    Route::get('/pos', 'index')->name('sales.pos');
+
+    Route::post('/cart/add',  'addToCart')->name('cart.add');
+
+    Route::post('/cart/remove/{id}',  'removeFromCart')->name('cart.remove');
+
+    Route::post('/cart/update',  'updateCart')->name('cart.update');
+
+    Route::get('/cart',  'getCart')->name('cart.get');
+
+    Route::post('/cart/clear',  'clearCart')->name('cart.clear');
+
+    Route::get('/sales-person/products/search', 'searchProducts')->name('sales.person.products.search');
+
+    Route::get('/sales-person/product/details', 'getProductDetails')->name('sales.person.product.details');
+
+});
+
+
+
+
+});
 
 
 

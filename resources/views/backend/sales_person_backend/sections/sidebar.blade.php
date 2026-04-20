@@ -15,7 +15,7 @@ $salesPerson = App\Models\User::findOrFail(Auth::user()->id);
     <!-- User details -->
     <div class="user-profile text-center mt-3">
         <div class="">
-            <img src="{{ empty($salesPerson->photo)? asset('uploads/no_image.png') : asset('uploads/student_photos/'.$salesPerson->photo)}}"  alt="" class="avatar-md rounded-circle">
+            <img src="{{ empty($salesPerson->photo)? asset('uploads/no_image.png') : asset('uploads/salesperson_photos/'.$salesPerson->photo)}}"  alt="" class="avatar-md rounded-circle">
         </div>
         <div class="mt-3">
             <h4 class="font-size-16 mb-1">{{ucwords(strtolower($salesPerson->name))}}</h4>
@@ -45,51 +45,13 @@ $salesPerson = App\Models\User::findOrFail(Auth::user()->id);
                     <span>My Subjects</span>
                 </a>
                 <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="">My Subjects</a></li>
+                    <li><a href="{{route('sales.pos')}}">Make sales</a></li>
                    
                 
                 
                 </ul>
             </li>
 
-
-            <li>
-                <a href="javascript: void(0);" class="has-arrow waves-effect">
-                <i class="ri-dashboard-line"></i>
-                    <span> CBT Question</span>
-                </a>
-                <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="#">Attempt CBT</a></li>
-                   
-                
-                
-                </ul>
-            </li>
-
-             <li>
-                <a href="javascript: void(0);" class="has-arrow waves-effect">
-                <i class="ri-dashboard-line"></i>
-                    <span>Profile</span>
-                </a>
-                <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="#">View Profile</a></li>
-
-                
-                </ul>
-            </li>
-
-
-
-             <li>
-                 <a class="dropdown-item text-danger" href="#">
-                <i class="ri-shut-down-line align-middle me-1 text-danger"></i>
-                    <span>Logout</span>
-                </a>
-                <ul class="sub-menu" aria-expanded="false">
-                    
-              
-                </ul>
-            </li>
 
 
 

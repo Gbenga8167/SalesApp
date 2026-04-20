@@ -149,6 +149,17 @@
 <input type="text" name="phone_number" value="{{ $salesperson->phone_number }}" class="form-control">
 </div>
 
+
+<div class="form-group">
+<label>Gender</label>
+<select name="gender" class="form-control">
+    <option value="Male" {{ $salesperson->gender=='Male'?'selected':'' }}>Male</option>
+    <option value="Female" {{ $salesperson->gender=='Female'?'selected':'' }}>Female</option>
+</select>
+</div>
+
+
+
 <!-- State -->
 <div class="form-group">
 <label>State of Origin</label>
