@@ -43,6 +43,7 @@ class SalesPersonPOSController extends Controller
             $cart[$id] = [
                 'product_id' => $id,
                 'name'       => $request->name,
+                'category'   => $request->category,
                 'price'      => $request->price,
                 'quantity'   => $request->quantity,
             ];
@@ -168,8 +169,8 @@ public function searchProducts(Request $request)
 // CLICKING SELECTING PRODUCT NAME ANDNCATEGORY
 
 
-public function getProductDetails(Request $request)
-{
+public function getProductDetails(Request $request){
+    
     // 🔥 Get latest product (KEEP THIS)
     $product = Sale::where('product_name', $request->product_name)
         ->where('category', $request->category)

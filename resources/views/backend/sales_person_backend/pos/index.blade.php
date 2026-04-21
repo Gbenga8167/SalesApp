@@ -2,12 +2,68 @@
 
 @section('salesperson')
 
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Bigger inputs */
+.form-control {
+    font-size: 16px;
+    padding: 12px;
+}
+
+/* Suggestion styling */
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.suggestion-item:hover {
+    background: #f1f1f1;
+}
+
+/* Category radio style */
+.category-option {
+    display: block;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.category-option:hover {
+    background: #f8f9fa;
+}
+
+.category-option input {
+    margin-right: 8px;
+}
+
+/* Cart table */
+.table td {
+    vertical-align: middle;
+    font-size: 15px;
+}
+
+/* Buttons */
+.btn {
+    font-size: 15px;
+    padding: 10px;
+}
+</style>
+
+
+
 <div class="container-fluid">
 
 <div class="row g-3">
 
     {{-- ================= LEFT PANEL ================= --}}
-    <div class="col-md-8">
+    <div class="col-md-4">
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">
                 Product Search
@@ -25,7 +81,7 @@
 
 
     {{-- ================= RIGHT PANEL (CART) ================= --}}
-    <div class="col-md-4">
+    <div class="col-md-8">
         <div class="card shadow-sm">
 
             <div class="card-header bg-dark text-white">
@@ -52,7 +108,7 @@
                 <hr>
 
                 <div class="mb-2">
-                    <strong>Total: ₦<span id="cartTotal">0</span></strong>
+                    <h1><strong>Total: ₦<span id="cartTotal">0</span></strong></h1>
                 </div>
 
 
@@ -96,18 +152,28 @@ $.each(cart, function(id, item){
 
     total += item.subtotal;
 
-    html += `
-        <tr>
-            <td>${item.name}</td>
-            <td>${item.quantity}</td>
-            <td>₦${item.price}</td>
-            <td>₦${item.subtotal}</td> <!-- ✅ ADD THIS -->
-            <td>
-                <button class='btn btn-sm btn-danger removeItem' data-id='${id}'>x</button>
-            </td>
-        </tr>
-    `;
-});
+   html += `
+             <tr>
+                 <td>
+                     <strong>${item.name}</strong><br>
+                     <small class="text-muted">${item.category ?? ''}</small>
+                 </td>
+             
+                 <td>${item.quantity}</td>
+             
+                 <td>
+                     ₦${item.price.toLocaleString()} <br>
+                    
+                 </td>
+             
+                 <td> ₦${item.subtotal.toLocaleString()}</td>
+             
+                 <td>
+                     <button class='btn btn-sm btn-danger removeItem' data-id='${id}'>x</button>
+                 </td>
+             </tr>
+        `;
+        });
 
         $('#cartTable').html(html);
         $('#cartTotal').text(total.toLocaleString());
@@ -189,11 +255,12 @@ $(document).on('change', 'input[name="category"]', function () {
 
                 <input type="number" id="qty" class="form-control mb-2" placeholder="Enter quantity">
 
-                <button class="btn btn-success addToCart"
-                    data-id="${product.id}"
-                    data-name="${product.product_name}"
-                    data-price="${product.selling_price}">
-                    Add To Cart
+              <button class="btn btn-success addToCart"
+                     data-id="${product.id}"
+                     data-name="${product.product_name}"
+                     data-price="${product.selling_price}"
+                     data-category="${product.category}">
+                     Add To Cart
                 </button>
 
             </div>
@@ -221,6 +288,7 @@ $(document).on('click', '.addToCart', function () {
         _token: "{{ csrf_token() }}",
         product_id: $(this).data('id'),
         name: $(this).data('name'),
+        category: $(this).data('category'),
         price: $(this).data('price'),
         quantity: qty
     }, function () {
@@ -260,9 +328,9 @@ $(document).on('click', '.removeItem', function(){
 //SEARCH PRODUCT
 $(document).on('click', '.suggestion-item', function () {
 
-    let productName = $(this).text();
+    let productName = $(this).text().trim();;
 
-    $('#searchProduct').val(productName);
+    $('#searchProduct').val(productName.trim());;
 
     // 🔥 Fetch categories
     $.get("{{ route('sales.person.products.search') }}", {
@@ -273,12 +341,12 @@ $(document).on('click', '.suggestion-item', function () {
 
         res.categories.forEach(cat => {
             html += `
-                <div>
-                    <input type="radio" name="category" value="${cat}">
-                    ${cat}
-                </div>
-            `;
-        });
+                      <label class="category-option">
+                          <input type="radio" name="category" value="${cat}">
+                          <span>${cat}</span>
+                      </label>
+                      `;
+               });
 
         $('#productList').html(html);
     });
