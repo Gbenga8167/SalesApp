@@ -121,8 +121,13 @@ body {
 
 
                 {{-- ACTION BUTTONS --}}
-                <button class="btn btn-warning w-100 mb-2">Pend Transaction</button>
+                <button id="pendBtn" class="btn btn-warning w-100 mb-2"> Pend Transaction</button>
                 <button class="btn btn-success w-100">Confirm & Print</button>
+
+                <hr>
+
+<h6>Pending Transactions</h6>
+<div id="pendingList"></div>
 
             </div>
         </div>
@@ -328,7 +333,7 @@ $(document).on('click', '.removeItem', function(){
 //SEARCH PRODUCT
 $(document).on('click', '.suggestion-item', function () {
 
-    let productName = $(this).text().trim();;
+    let productName = $(this).text().replace(/\s+/g, ' ').trim();;
 
     $('#searchProduct').val(productName.trim());;
 
@@ -351,6 +356,114 @@ $(document).on('click', '.suggestion-item', function () {
         $('#productList').html(html);
     });
 
+});
+
+
+/* PEND TRANSACTIONS*/
+$('#pendBtn').click(function(){
+
+    $.post("{{ route('cart.pend') }}", {
+        _token: "{{ csrf_token() }}"
+    }, function(res){
+
+        if(res.status === 'empty'){
+            alert('Cart is empty');
+            return;
+        }
+
+        alert('Transaction Pended ✅');
+
+        loadCart();      // refresh cart
+        loadPending();   // 🔥 VERY IMPORTANT (refresh pending list)
+    });
+
+});
+
+
+/*LOAD PENDING TRANSACTIONS*/
+
+function loadPending(){
+
+    $.get("{{ route('cart.pending') }}", function(res){
+
+        let html = '';
+
+        if(!res.pending || res.pending.length === 0){
+            html = `<div class="text-muted">No pending transactions</div>`;
+        } else {
+
+            res.pending.forEach(item => {
+
+                html += `
+                    <div class="border p-2 mb-2 rounded d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <small>${item.created_at}</small><br>
+                            <button class="btn btn-sm btn-primary loadPending"
+                                data-id="${item.id}">
+                                Restore
+                            </button>
+                        </div>
+
+                        <button class="btn btn-sm btn-danger deletePending"
+                            data-id="${item.id}">
+                            ✖
+                        </button>
+
+                    </div>
+                `;
+            });
+        }
+
+        $('#pendingList').html(html);
+    });
+}
+
+
+
+/*LOAD BACK TO CART*/
+
+$(document).on('click', '.loadPending', function(){
+
+    let id = $(this).data('id');
+
+    $.post("/cart/load-pending/" + id, {
+        _token: "{{ csrf_token() }}"
+    }, function(){
+
+        loadCart();
+        loadPending();
+
+    });
+
+});
+
+
+
+/*DELETE PENDING*/
+$(document).on('click', '.deletePending', function(){
+
+    let id = $(this).data('id');
+
+    if(!confirm('Delete this pending transaction?')) return;
+
+    $.post("/cart/delete-pending/" + id, {
+        _token: "{{ csrf_token() }}"
+    }, function(res){
+
+        if(res.status === 'deleted'){
+            loadPending(); // 🔥 refresh immediately
+        }
+
+    });
+
+});
+
+
+
+$(document).ready(function () {
+    loadCart();
+    loadPending();
 });
 </script>
 

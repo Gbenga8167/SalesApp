@@ -71,6 +71,12 @@ Route::get('/sales-person/dashboard', function () {
 
     Route::get('/sales-person/product/details', 'getProductDetails')->name('sales.person.product.details');
 
+    // PEND TRANSACTIONS
+    Route::post('/cart/pend', 'pendTransaction')->name('cart.pend');
+    Route::get('/cart/pending', 'getPending')->name('cart.pending');
+    Route::post('/cart/load-pending/{id}', 'loadPending')->name('cart.load.pending');
+    //DELETE PENDING TRANSACTIONS
+    Route::post('/cart/delete-pending/{id}', 'deletePending')->name('cart.delete.pending');
 });
 
 

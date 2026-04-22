@@ -12,13 +12,14 @@ class SalesPersonPOSController extends Controller
     // ==============================
     // 1. SHOW POS PAGE
     // ==============================
-    public function index()
-    {
-        $cart = session()->get('cart', []);
+   public function index(){
 
-        return view('backend.sales_person_backend.pos.index', compact('cart'));
-    }
+   // session()->forget('current_pending_id'); // optional reset
 
+    $cart = session()->get('cart', []);
+
+    return view('backend.sales_person_backend.pos.index', compact('cart'));
+}
 
     // ==============================
     // 2. ADD TO CART
@@ -113,14 +114,15 @@ class SalesPersonPOSController extends Controller
     // ==============================
     // 5. CLEAR CART
     // ==============================
-    public function clearCart()
-    {
-        session()->forget('cart');
+public function clearCart()
+{
+    session()->forget('cart');
+    session()->forget('current_pending_id');
 
-        return response()->json([
-            'status' => 'cleared'
-        ]);
-    }
+    return response()->json([
+        'status' => 'cleared'
+    ]);
+}
 
 
     // ==============================
@@ -193,5 +195,104 @@ public function getProductDetails(Request $request){
 }
 
 
+//🔵 PEND TRANSACTION
+public function pendTransaction()
+{
+    $cart = session()->get('cart', []);
+
+    if (empty($cart)) {
+        return response()->json(['status' => 'empty']);
+    }
+
+    $pending = session()->get('pending_transactions', []);
+
+    $currentId = session()->get('current_pending_id');
+
+    if ($currentId) {
+        // 🔥 UPDATE existing pending instead of duplicating
+        foreach ($pending as $key => $item) {
+            if ($item['id'] == $currentId) {
+                $pending[$key]['cart'] = $cart;
+                $pending[$key]['created_at'] = now();
+                break;
+            }
+        }
+
+    } else {
+        // 🔥 CREATE new pending
+        $pending[] = [
+            'id' => uniqid(),
+            'cart' => $cart,
+            'created_at' => now()
+        ];
+    }
+
+    session()->put('pending_transactions', $pending);
+
+    // clear cart + reset tracker
+    session()->forget('cart');
+    session()->forget('current_pending_id');
+
+    return response()->json([
+        'status' => 'pended'
+    ]);
+}
+
+
+//🔵 GET ALL PENDING
+public function getPending(){
+
+    return response()->json([
+        'pending' => session()->get('pending_transactions', [])
+    ]);
+}
+
+
+//🔵 LOAD BACK INTO CART
+public function loadPending($id)
+{
+    $pending = session()->get('pending_transactions', []);
+    $cart = [];
+
+    foreach ($pending as $item) {
+        if ($item['id'] == $id) {
+            $cart = $item['cart'];
+
+            // 🔥 Track current pending
+            session()->put('current_pending_id', $id);
+
+            break;
+        }
+    }
+
+    session()->put('cart', $cart);
+
+    return response()->json([
+        'status' => 'loaded'
+    ]);
+}
+
+
+
+//DELETE PENDING
+public function deletePending($id)
+{
+    $pending = session()->get('pending_transactions', []);
+
+    foreach ($pending as $key => $item) {
+        if ($item['id'] == $id) {
+            unset($pending[$key]);
+        }
+    }
+
+    // 🔥 VERY IMPORTANT: reindex array
+    $pending = array_values($pending);
+
+    session()->put('pending_transactions', $pending);
+
+    return response()->json([
+        'status' => 'deleted'
+    ]);
+}
 
 }
