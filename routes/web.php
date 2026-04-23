@@ -77,6 +77,16 @@ Route::get('/sales-person/dashboard', function () {
     Route::post('/cart/load-pending/{id}', 'loadPending')->name('cart.load.pending');
     //DELETE PENDING TRANSACTIONS
     Route::post('/cart/delete-pending/{id}', 'deletePending')->name('cart.delete.pending');
+
+    //CONFIRM SALES
+    Route::post('/cart/confirm', 'confirmSale')->name('cart.confirm');
+
+    //PRINT RECEIPT
+    Route::get('/receipt/{id}', 'printReceipt')->name('receipt.print');
+
+    //SALES HISTORY
+    Route::get('/sales/history', 'salesHistory')->name('sales.history');
+    Route::get('/sales/history/data', 'salesHistoryData')->name('sales.history.data');
 });
 
 

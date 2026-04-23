@@ -122,7 +122,7 @@ body {
 
                 {{-- ACTION BUTTONS --}}
                 <button id="pendBtn" class="btn btn-warning w-100 mb-2"> Pend Transaction</button>
-                <button class="btn btn-success w-100">Confirm & Print</button>
+                <button id="confirmBtn" class="btn btn-success w-100">Confirm & Print</button>
 
                 <hr>
 
@@ -158,30 +158,31 @@ $.each(cart, function(id, item){
     total += item.subtotal;
 
    html += `
-             <tr>
-                 <td>
-                     <strong>${item.name}</strong><br>
-                     <small class="text-muted">${item.category ?? ''}</small>
-                 </td>
-             
-                 <td>${item.quantity}</td>
-             
-                 <td>
-                     ₦${item.price.toLocaleString()} <br>
-                    
-                 </td>
-             
-                 <td> ₦${item.subtotal.toLocaleString()}</td>
-             
-                 <td>
-                     <button class='btn btn-sm btn-danger removeItem' data-id='${id}'>x</button>
-                 </td>
-             </tr>
-        `;
+<tr>
+    <td>
+        <strong>${item.name}</strong><br>
+        <small class="text-muted">${item.category ?? ''}</small>
+    </td>
+
+    <td>${item.quantity}</td>
+
+    <td>
+        ₦${parseFloat(item.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    </td>
+
+    <td>
+        ₦${parseFloat(item.subtotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    </td>
+
+    <td>
+        <button class='btn btn-sm btn-danger removeItem' data-id='${id}'>x</button>
+    </td>
+</tr>
+`;
         });
 
         $('#cartTable').html(html);
-        $('#cartTotal').text(total.toLocaleString());
+        $('#cartTotal').text(total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     });
 }
 
@@ -254,18 +255,20 @@ $(document).on('change', 'input[name="category"]', function () {
             <div class="card p-3 shadow-sm">
 
                 <h5>${product.product_name}</h5>
-                <p><label><strong>Category:</strong> ${product.category}</label</p>
-                <p><strong>Price:</strong> ₦${product.selling_price}</p>
-                <p><strong>Stock:</strong> ${product.quantity}</p>
+                <p><strong>Category:</strong> ${product.category}</p>
+                <p><strong>Price:</strong>  ₦${product.selling_price}</p>
+                <p><strong>Available Stock:</strong> ${product.available_stock}</p>
 
-                <input type="number" id="qty" class="form-control mb-2" placeholder="Enter quantity">
+                <input type="number" id="qty" class="form-control mb-2" 
+                       placeholder="Enter quantity" min="1" max="${product.available_stock}">
 
-              <button class="btn btn-success addToCart"
-                     data-id="${product.id}"
-                     data-name="${product.product_name}"
-                     data-price="${product.selling_price}"
-                     data-category="${product.category}">
-                     Add To Cart
+                <button class="btn btn-success addToCart"
+                        data-id="${product.id}"
+                        data-name="${product.product_name}"
+                        data-price="${product.selling_price}"
+                        data-category="${product.category}"
+                        data-stock="${product.available_stock}">
+                        Add To Cart
                 </button>
 
             </div>
@@ -278,17 +281,32 @@ $(document).on('change', 'input[name="category"]', function () {
 
 
 // ===============================
-// ADD TO CART
+// ADD TO CART (WITH STOCK VALIDATION)
 // ===============================
 $(document).on('click', '.addToCart', function () {
 
-    let qty = $('#qty').val();
+    let qty = parseInt($('#qty').val());
+    let stock = parseInt($(this).data('stock'));
 
+    // ❌ Invalid input
     if (!qty || qty <= 0) {
         alert('Enter valid quantity');
         return;
     }
 
+    // ❌ Stock exceeded
+    if (qty > stock) {
+        alert('Not enough stock available!');
+        return;
+    }
+
+    // ❌ Out of stock
+    if (stock <= 0) {
+        alert('This product is out of stock!');
+        return;
+    }
+
+    // ✅ Proceed
     $.post("{{ route('cart.add') }}", {
         _token: "{{ csrf_token() }}",
         product_id: $(this).data('id'),
@@ -296,7 +314,13 @@ $(document).on('click', '.addToCart', function () {
         category: $(this).data('category'),
         price: $(this).data('price'),
         quantity: qty
-    }, function () {
+    }, function (res) {
+
+        // 🔥 Handle backend error (we will add this next)
+        if(res.status === 'error'){
+            alert(res.message);
+            return;
+        }
 
         loadCart();
 
@@ -461,6 +485,55 @@ $(document).on('click', '.deletePending', function(){
 
 
 
+//PRINT AND CONFIRM BUTTON
+$('#confirmBtn').click(function(){
+
+    let payment = $('input[name="payment"]:checked').val();
+
+    if(!payment){
+        alert('Select payment method');
+        return;
+    }
+
+    $.ajax({
+        url: "{{ route('cart.confirm') }}",
+        type: "POST",
+        dataType: "json",
+        data: {
+            _token: "{{ csrf_token() }}",
+            payment_method: payment
+        },
+
+        success: function(res){
+
+            if(res.status === 'empty'){
+                alert('Cart is empty');
+                return;
+            }
+
+            if(res.status === 'success'){
+
+                // 🔥 open receipt properly
+                window.open('/receipt/' + res.transaction_id, '_blank');
+
+                loadCart();
+                loadPending();
+            }
+
+            if(res.status === 'error'){
+                alert(res.message);
+            }
+        },
+
+        error: function(xhr){
+            console.log(xhr.responseText);
+            alert('Something went wrong. Check console.');
+        }
+    });
+
+});
+
+//FORCE PAGE LOAD
 $(document).ready(function () {
     loadCart();
     loadPending();

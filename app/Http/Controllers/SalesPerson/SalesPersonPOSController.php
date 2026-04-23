@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\SalesPerson;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Sale;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SalesPersonPOSController extends Controller
@@ -25,43 +26,92 @@ class SalesPersonPOSController extends Controller
     // 2. ADD TO CART
     // ==============================
     public function addToCart(Request $request)
-    {
-        $request->validate([
-            'product_id' => 'required',
-            'name' => 'required',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer|min:1',
-        ]);
+{
+    $request->validate([
+        'product_id' => 'required',
+        'name' => 'required',
+        'price' => 'required|numeric',
+        'quantity' => 'required|integer|min:1',
+    ]);
 
-        $cart = session()->get('cart', []);
+    $cart = session()->get('cart', []);
+    $id = $request->product_id;
 
-        $id = $request->product_id;
+    // =========================
+    // 🔥 CALCULATE STOCK (IN)
+    // =========================
+    $totalStock = Sale::where('product_name', $request->name)
+        ->where('category', $request->category)
+        ->sum('quantity');
 
-        // If product already exists → merge quantity
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity'] += $request->quantity;
-        } else {
-            $cart[$id] = [
-                'product_id' => $id,
-                'name'       => $request->name,
-                'category'   => $request->category,
-                'price'      => $request->price,
-                'quantity'   => $request->quantity,
-            ];
-        }
+    // =========================
+    // 🔥 CALCULATE SOLD (OUT)
+    // =========================
+    $totalSold = \DB::table('sales_items')
+        ->where('product_name', $request->name)
+        ->where('category', $request->category)
+        ->sum('quantity');
 
-        // Recalculate subtotal per item
-        foreach ($cart as $key => $item) {
-            $cart[$key]['subtotal'] = $item['price'] * $item['quantity'];
-        }
+    // =========================
+    // 🔥 AVAILABLE STOCK
+    // =========================
+    $availableStock = $totalStock - $totalSold;
 
-        session()->put('cart', $cart);
+    if ($availableStock < 0) {
+        $availableStock = 0;
+    }
 
+    // =========================
+    // 🔥 EXISTING CART QUANTITY CHECK
+    // =========================
+    $existingQty = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+
+    $newTotalQty = $existingQty + $request->quantity;
+
+    // =========================
+    // 🚨 HARD BLOCK (NO BYPASS)
+    // =========================
+    if ($availableStock <= 0) {
         return response()->json([
-            'status' => 'success',
-            'cart'   => $cart
+            'status' => 'error',
+            'message' => 'Product is out of stock'
         ]);
     }
+
+    if ($newTotalQty > $availableStock) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Stock exceeded! Available: ' . $availableStock
+        ]);
+    }
+
+    // =========================
+    // 🛒 ADD / UPDATE CART
+    // =========================
+    if (isset($cart[$id])) {
+        $cart[$id]['quantity'] += $request->quantity;
+    } else {
+        $cart[$id] = [
+            'product_id' => $id,
+            'name'       => $request->name,
+            'category'   => $request->category,
+            'price'      => $request->price,
+            'quantity'   => $request->quantity,
+        ];
+    }
+
+    // Recalculate subtotal
+    foreach ($cart as $key => $item) {
+        $cart[$key]['subtotal'] = $item['price'] * $item['quantity'];
+    }
+
+    session()->put('cart', $cart);
+
+    return response()->json([
+        'status' => 'success',
+        'cart'   => $cart
+    ]);
+}
 
 
     // ==============================
@@ -171,11 +221,14 @@ public function searchProducts(Request $request)
 // CLICKING SELECTING PRODUCT NAME ANDNCATEGORY
 
 
-public function getProductDetails(Request $request){
-    
-    // 🔥 Get latest product (KEEP THIS)
-    $product = Sale::where('product_name', $request->product_name)
-        ->where('category', $request->category)
+public function getProductDetails(Request $request)
+{
+    $productName = $request->product_name;
+    $category = $request->category;
+
+    // 🔥 Get latest product (price, etc.)
+    $product = Sale::where('product_name', $productName)
+        ->where('category', $category)
         ->orderBy('id', 'desc')
         ->first();
 
@@ -183,13 +236,52 @@ public function getProductDetails(Request $request){
         return response()->json(null);
     }
 
-    // 🔥 ADD THIS (sum total quantity)
-    $totalQuantity = Sale::where('product_name', $request->product_name)
-        ->where('category', $request->category)
+    // =========================
+    // 🔥 TOTAL STOCK (IN)
+    // =========================
+    $totalStock = Sale::where('product_name', $productName)
+        ->where('category', $category)
         ->sum('quantity');
 
-    // 🔥 Replace only quantity
-    $product->quantity = $totalQuantity;
+    // =========================
+    // 🔥 TOTAL SOLD (OUT)
+    // =========================
+    $totalSold = \DB::table('sales_items')
+        ->where('product_name', $productName)
+        ->where('category', $category)
+        ->sum('quantity');
+
+
+    // =========================
+    // CART COUNTING LOGIC FOR REAL TIME
+    //  AVAILABLE STOCK UPDATE AT THE (LEFT SIDE) AFTER ADDING TO CART
+    // =========================
+
+        $cart = session()->get('cart', []);
+
+        $cartQty = 0;
+
+       foreach ($cart as $item) {
+      if (
+        $item['name'] === $productName &&
+        $item['category'] === $category
+       ) {
+        $cartQty += $item['quantity'];
+       }
+   }
+    // =========================
+    // 🔥 AVAILABLE STOCK
+    // =========================
+    $availableStock = $totalStock - $totalSold - $cartQty;
+
+    // prevent negative (just in case)
+    if ($availableStock < 0) {
+        $availableStock = 0;
+    }
+
+    // 🔥 attach to response
+    $product->available_stock = $availableStock;
+    
 
     return response()->json($product);
 }
@@ -295,4 +387,133 @@ public function deletePending($id)
     ]);
 }
 
+
+
+//CONFIRM TRANSACTION, PRINT AND GENERATE RECEIPT
+public function confirmSale(Request $request)
+{
+    $cart = session()->get('cart', []);
+
+    if (empty($cart)) {
+        return response()->json(['status' => 'empty']);
+    }
+
+    try {
+
+        DB::beginTransaction();
+
+        // =========================
+        // 🔥 GENERATE RECEIPT NUMBER (LOCKED)
+        // =========================
+        $today = Carbon::now()->format('Ymd');
+
+        $lastTransaction = DB::table('sales_transactions')
+            ->whereDate('created_at', Carbon::today())
+            ->lockForUpdate() // 🔥 prevents duplicate under pressure
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastTransaction) {
+            // extract last number
+            $lastNumber = intval(substr($lastTransaction->receipt_no, -4));
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $receiptNo = '#' . $today . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        // =========================
+        // 🔥 CALCULATE TOTAL
+        // =========================
+        $total = 0;
+        foreach ($cart as $item) {
+            $total += $item['subtotal'];
+        }
+
+        // =========================
+        // 🔥 SAVE TRANSACTION
+        // =========================
+        $transactionId = DB::table('sales_transactions')->insertGetId([
+            'receipt_no'    => $receiptNo,
+            'total_amount'  => $total,
+            'payment_method'=> $request->payment_method ?? 'cash',
+            'cashier_id'    => auth()->id() ?? 1,
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        // =========================
+        // 🔥 SAVE ITEMS
+        // =========================
+        foreach ($cart as $item) {
+
+            DB::table('sales_items')->insert([
+                'transaction_id' => $transactionId,
+                'product_name'   => $item['name'],
+                'category'       => $item['category'],
+                'quantity'       => $item['quantity'],
+                'price'          => $item['price'],
+                'subtotal'       => $item['subtotal'],
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+        }
+
+        // =========================
+        // 🔥 CLEAR CART
+        // =========================
+        session()->forget('cart');
+        session()->forget('current_pending_id');
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 'success',
+            'receipt_no' => $receiptNo,
+            'transaction_id' => $transactionId
+        ]);
+
+    } catch (\Exception $e) {
+
+        DB::rollback();
+
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+
+//PRINT RECEIPT
+public function printReceipt($id)
+{
+    // 🔥 GET TRANSACTION
+    $transaction = \DB::table('sales_transactions')
+        ->where('id', $id)
+        ->first();
+
+    if (!$transaction) {
+        abort(404);
+    }
+
+    // 🔥 GET ITEMS
+    $items = \DB::table('sales_items')
+        ->where('transaction_id', $id)
+        ->get();
+
+    // 🔥 GET SETTINGS (company info)
+    $settings = \DB::table('settings')->first();
+
+    // 🔥 GET CASHIER
+    $cashier = \App\Models\User::find($transaction->cashier_id);
+
+    return view('backend.sales_person_backend.pos.receipt', compact(
+        'transaction',
+        'items',
+        'settings',
+        'cashier'
+    ));
+}
 }
