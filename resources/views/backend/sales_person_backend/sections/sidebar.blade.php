@@ -42,16 +42,28 @@ $salesPerson = App\Models\User::findOrFail(Auth::user()->id);
             <li>
                 <a href="javascript: void(0);" class="has-arrow waves-effect">
                 <i class="ri-dashboard-line"></i>
-                    <span>My Subjects</span>
+                    <span>Makes Sales</span>
                 </a>
                 <ul class="sub-menu" aria-expanded="false">
                     <li><a href="{{route('sales.pos')}}">Make sales</a></li>
                    
-                
-                
+                   
                 </ul>
             </li>
 
+
+            
+            <li>
+                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                <i class="ri-dashboard-line"></i>
+                    <span>Manage Sales</span>
+                </a>
+                <ul class="sub-menu" aria-expanded="false">
+                    <li><a href="{{route('sales.person.history')}}">Manage sales</a></li>
+                   
+                   
+                </ul>
+            </li>
 
 
 

@@ -85,8 +85,15 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/receipt/{id}', 'printReceipt')->name('receipt.print');
 
     //SALES HISTORY
-    Route::get('/sales/history', 'salesHistory')->name('sales.history');
-    Route::get('/sales/history/data', 'salesHistoryData')->name('sales.history.data');
+    Route::get('/sales/person/history', 'salesPersonHistory')->name('sales.person.history');
+    Route::get('/sales/history/data', 'salesPersonHistoryData')->name('sales.person.history.data');
+
+
+    //SALE PERSON'S SALE ITEMS
+    Route::get('/sales-items/{id}', 'salesItems')->name('sales.items');
+    Route::get('/sales-items-suggestions/{id}', 'itemSuggestions')->name('sales.items.suggestions');
+    //sales person item page
+    Route::get('/sales-items-page/{id}', 'salesItemsPage')->name('sales.items.page');
 });
 
 

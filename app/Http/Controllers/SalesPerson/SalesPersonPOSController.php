@@ -4,9 +4,10 @@ namespace App\Http\Controllers\SalesPerson;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
-use Illuminate\Support\Facades\DB;
+use App\Models\SalesTransaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SalesPersonPOSController extends Controller
 {
@@ -515,5 +516,103 @@ public function printReceipt($id)
         'settings',
         'cashier'
     ));
+}
+
+
+//SALES PERSON (SALES HISTORY)
+public function salesPersonHistory()
+{
+    return view('backend.sales_person_backend.pos.sales_history');
+}
+
+
+//SALES PERSON HISTORY STORE DATA
+public function salesPersonHistoryData(Request $request)
+{
+    $query = \DB::table('sales_transactions')
+        ->where('cashier_id', auth()->id());
+
+    // 🔍 GLOBAL SEARCH
+    if ($request->search) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('receipt_no', 'like', "%$search%")
+              ->orWhere('payment_method', 'like', "%$search%")
+              ->orWhere('total_amount', 'like', "%$search%");
+        });
+    }
+
+    // DATE FILTER
+    if ($request->from && $request->to) {
+        $query->whereBetween('created_at', [
+            $request->from . ' 00:00:00',
+            $request->to . ' 23:59:59'
+        ]);
+    }
+
+    $transactions = $query
+        ->orderBy('id', 'desc')
+        ->paginate(10);
+
+    return response()->json($transactions);
+}
+
+
+//SALES PERSON ITEM PAGE 
+public function salesItemsPage($id)
+{
+    $transaction = SalesTransaction::findOrFail($id);
+
+    return view('backend.sales_person_backend.pos.sales_item', compact('transaction'));
+}
+
+//SALES ITEMS FOR SALES PERSON 
+public function salesItems(Request $request, $transactionId){
+
+$query = \App\Models\SalesItem::where('transaction_id', $transactionId);
+
+    // 🔍 SEARCH (product name / category)
+    if ($request->search) {
+        $search = $request->search;
+
+        $query->where(function($q) use ($search){
+            $q->where('product_name', 'LIKE', "%$search%")
+              ->orWhere('category', 'LIKE', "%$search%");
+        });
+    }
+
+    // 📅 DATE RANGE
+    if ($request->from) {
+        $query->whereDate('created_at', '>=', $request->from);
+    }
+
+    if ($request->to) {
+        $query->whereDate('created_at', '<=', $request->to);
+    }
+
+    // 🔥 PAGINATION
+    $items = $query->orderBy('id', 'desc')->paginate(10);
+
+    return response()->json($items);
+}
+
+
+//ITEM SUGGESTIONS 
+public function itemSuggestions(Request $request, $transactionId)
+{
+    $search = $request->query('q');
+
+    $suggestions = \App\Models\SalesItem::where('transaction_id', $transactionId)
+        ->where(function($q) use ($search){
+            $q->where('product_name', 'LIKE', "%$search%")
+              ->orWhere('category', 'LIKE', "%$search%");
+        })
+        ->select('product_name')
+        ->distinct()
+        ->limit(5)
+        ->pluck('product_name');
+
+    return response()->json($suggestions);
 }
 }
