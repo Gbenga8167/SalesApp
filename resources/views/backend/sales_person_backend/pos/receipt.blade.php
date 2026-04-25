@@ -54,7 +54,7 @@
     {{-- 🔥 RECEIPT INFO --}}
     <p>
         Receipt: {{ $transaction->receipt_no }} <br>
-        Date: {{ \Carbon\Carbon::parse($transaction->created_at)->format('d M Y h:i A') }} <br>
+        Date: {{\Carbon\Carbon::parse($transaction->created_at)->timezone($settings->timezone ?? 'Africa/Lagos')->format('d M Y h:i A')}} <br>
         Cashier: {{ $cashier->name ?? 'N/A' }}
     </p>
 

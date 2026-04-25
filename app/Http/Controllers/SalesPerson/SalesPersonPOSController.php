@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SalesPerson;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
+use App\Models\SalesItem;
 use App\Models\SalesTransaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -553,7 +554,7 @@ public function salesPersonHistoryData(Request $request)
 
     $transactions = $query
         ->orderBy('id', 'desc')
-        ->paginate(10);
+        ->paginate(2);
 
     return response()->json($transactions);
 }
@@ -568,21 +569,21 @@ public function salesItemsPage($id)
 }
 
 //SALES ITEMS FOR SALES PERSON 
-public function salesItems(Request $request, $transactionId){
+public function salesItems(Request $request, $id)
+{
+    $query = SalesItem::where('transaction_id', $id);
 
-$query = \App\Models\SalesItem::where('transaction_id', $transactionId);
-
-    // 🔍 SEARCH (product name / category)
+    // 🔍 SEARCH
     if ($request->search) {
         $search = $request->search;
 
         $query->where(function($q) use ($search){
-            $q->where('product_name', 'LIKE', "%$search%")
-              ->orWhere('category', 'LIKE', "%$search%");
+            $q->where('product_name', 'LIKE', "%{$search}%")
+              ->orWhere('category', 'LIKE', "%{$search}%");
         });
     }
 
-    // 📅 DATE RANGE
+    // 📅 DATE FILTER
     if ($request->from) {
         $query->whereDate('created_at', '>=', $request->from);
     }
@@ -591,28 +592,32 @@ $query = \App\Models\SalesItem::where('transaction_id', $transactionId);
         $query->whereDate('created_at', '<=', $request->to);
     }
 
-    // 🔥 PAGINATION
-    $items = $query->orderBy('id', 'desc')->paginate(10);
+    // 🔥 GET ALL (NO PAGINATION)
+    $items = $query->orderBy('id', 'desc')->get();
 
-    return response()->json($items);
+    // TOTAL (FILTERED)
+    $totalAmount = $items->sum('subtotal');
+
+    return response()->json([
+        'data' => $items,
+        'total_amount' => $totalAmount,
+    ]);
 }
 
 
+
+
 //ITEM SUGGESTIONS 
-public function itemSuggestions(Request $request, $transactionId)
+public function itemSuggestions(Request $request, $id)
 {
-    $search = $request->query('q');
+    $query = $request->q;
 
-    $suggestions = \App\Models\SalesItem::where('transaction_id', $transactionId)
-        ->where(function($q) use ($search){
-            $q->where('product_name', 'LIKE', "%$search%")
-              ->orWhere('category', 'LIKE', "%$search%");
+    return SalesItem::where('transaction_id', $id)
+        ->where(function ($q) use ($query) {
+            $q->where('product_name', 'LIKE', "%{$query}%")
+              ->orWhere('category', 'LIKE', "%{$query}%");
         })
-        ->select('product_name')
-        ->distinct()
-        ->limit(5)
+        ->limit(10)
         ->pluck('product_name');
-
-    return response()->json($suggestions);
 }
 }

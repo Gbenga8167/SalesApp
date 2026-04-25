@@ -3,59 +3,112 @@
 @section('salesperson')
 
 <style>
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* CARD */
 .card {
     border-radius: 10px;
+    overflow: hidden;
 }
 
-.table th {
+/* HEADER (MATCH YOUR OTHER PAGE STYLE) */
+.page-title {
+    background: linear-gradient(45deg, #343a40, #212529);
+    color: #fff;
+    padding: 12px 15px;
     font-weight: 600;
+    font-size: 18px;
 }
 
+/* SEARCH AREA */
 .search-box {
     display: flex;
     gap: 10px;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
 }
 
-.search-box input {
-    padding: 10px;
+/* INPUTS */
+.form-control {
+    font-size: 15px;
+    font-weight: 500;
+    padding: 12px;
 }
 
-.pagination button {
-    margin: 2px;
+/* TABLE */
+.table th {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.table td {
+    font-size: 15px;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+/* BUTTON STYLE (KEEP YOUR COLOR) */
+.btn-primary {
+    font-weight: 500;
+}
+
+/* PAGINATION */
+#pagination {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+#pagination button {
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+    .search-box {
+        flex-direction: column;
+    }
 }
 </style>
 
 <div class="container-fluid">
 
 <div class="card shadow-sm">
-    <div class="card-header bg-dark text-white">
+
+    <!-- HEADER -->
+    <div class="page-title">
         Sales History
     </div>
 
     <div class="card-body">
 
-        <!-- 🔍 SEARCH + DATE -->
-        <div class="search-box mb-3">
-            <input type="text" id="search" class="form-control" placeholder="Search anything...">
-
+        <!-- SEARCH -->
+        <div class="search-box">
+            <input type="text" id="search" class="form-control" placeholder="Search receipt, payment, etc...">
             <input type="date" id="from" class="form-control">
             <input type="date" id="to" class="form-control">
         </div>
 
         <!-- TABLE -->
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th>Receipt_no</th>
-                    <th>Total</th>
-                    <th>Payment Method</th>
-                    <th>Transaction Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Receipt No</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Transaction Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-            <tbody id="tableBody"></tbody>
-        </table>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
 
         <!-- PAGINATION -->
         <div id="pagination"></div>
@@ -76,9 +129,7 @@ function formatMoney(value){
     });
 }
 
-// ========================
 // LOAD DATA
-// ========================
 function loadData(page = 1){
 
     $.get("{{ route('sales.person.history.data') }}", {
@@ -103,9 +154,9 @@ function loadData(page = 1){
                         <td>${item.payment_method}</td>
                         <td>${item.created_at}</td>
                         <td>
-                        <a href="/sales-items-page/${item.id}" class="btn btn-sm btn-primary">
-    Sales History
-</a>
+                            <a href="/sales-items-page/${item.id}" class="btn btn-sm btn-primary">
+                                View Items
+                            </a>
                         </td>
                     </tr>
                 `;
@@ -114,7 +165,7 @@ function loadData(page = 1){
 
         $('#tableBody').html(html);
 
-        // 🔥 PAGINATION
+        // SIMPLE PAGINATION
         let pag = "";
 
         for(let i = 1; i <= res.last_page; i++){
@@ -130,9 +181,7 @@ function loadData(page = 1){
     });
 }
 
-// ========================
-// SEARCH EVENTS
-// ========================
+// EVENTS
 $('#search, #from, #to').on('keyup change', function(){
     loadData();
 });

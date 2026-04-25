@@ -16,38 +16,45 @@ class SettingController extends Controller
 
 public function UpdateSettings(Request $request)
 {
-    $request->validate([
-        'company_name' => 'nullable|string|max:255',
-        'address' => 'nullable|string|max:255',
-        'logo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
-    ]);
+    try {
 
-    $setting = Setting::first();
+        $request->validate([
+            'company_name' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'timezone' => 'nullable|string|max:100',
+        ]);
 
-    if (!$setting) {
-        $setting = new Setting();
-    }
+        $setting = Setting::first();
 
-    // IMAGE UPLOAD
-    if ($request->hasFile('logo')) {
-
-        // delete old
-        if ($setting->logo && file_exists(public_path('uploads/settings/'.$setting->logo))) {
-            unlink(public_path('uploads/settings/'.$setting->logo));
+        if (!$setting) {
+            $setting = new Setting();
         }
 
-        $file = $request->file('logo');
-        $filename = time().'.'.$file->getClientOriginalExtension();
-        $file->move(public_path('uploads/settings'), $filename);
+        // IMAGE UPLOAD
+        if ($request->hasFile('logo')) {
 
-        $setting->logo = $filename;
+            if ($setting->logo && file_exists(public_path('uploads/settings/'.$setting->logo))) {
+                unlink(public_path('uploads/settings/'.$setting->logo));
+            }
+
+            $file = $request->file('logo');
+            $filename = time().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/settings'), $filename);
+
+            $setting->logo = $filename;
+        }
+
+        $setting->company_name = $request->company_name;
+        $setting->address = $request->address;
+        $setting->timezone = $request->timezone;
+
+        $setting->save();
+
+        return back()->with('success', 'Settings updated successfully!');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Something went wrong. Please try again!');
     }
-
-    $setting->company_name = $request->company_name;
-    $setting->address = $request->address;
-
-    $setting->save();
-
-    return back()->with('success', 'Settings updated successfully!');
 }
 }

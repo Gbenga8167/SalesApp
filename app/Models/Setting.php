@@ -10,5 +10,6 @@ class Setting extends Model
         'company_name',
         'address',
         'logo',
+        'timezone',
     ];
 }
