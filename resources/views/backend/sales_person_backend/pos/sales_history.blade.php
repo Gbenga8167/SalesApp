@@ -13,7 +13,7 @@ body {
     overflow: hidden;
 }
 
-/* HEADER (MATCH YOUR OTHER PAGE STYLE) */
+/* HEADER */
 .page-title {
     background: linear-gradient(45deg, #343a40, #212529);
     color: #fff;
@@ -22,7 +22,7 @@ body {
     font-size: 18px;
 }
 
-/* SEARCH AREA */
+/* SEARCH */
 .search-box {
     display: flex;
     gap: 10px;
@@ -49,28 +49,42 @@ body {
     vertical-align: middle;
 }
 
-/* BUTTON STYLE (KEEP YOUR COLOR) */
+/* BUTTON */
 .btn-primary {
     font-weight: 500;
 }
 
-/* PAGINATION */
-#pagination {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 10px;
+/* 🔥 FIX DATATABLE "+" BUTTON ALIGNMENT */
+table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child:before,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child:before {
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%);
+    margin-top: 0;
 }
 
-#pagination button {
-    border-radius: 6px;
-    padding: 6px 12px;
+/* Give space so it doesn't overlap S/N */
+table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
+    padding-left: 30px !important;
 }
 
-/* MOBILE */
+/* 🔥 SMALLER PAGINATION ON MOBILE ONLY */
 @media (max-width: 768px) {
-    .search-box {
-        flex-direction: column;
+
+    .dataTables_paginate {
+        text-align: center !important;
+    }
+
+    .dataTables_paginate .paginate_button {
+        padding: 3px 8px !important;
+        font-size: 12px !important;
+        margin: 2px !important;
+    }
+
+    /* spacing */
+    .dataTables_wrapper .dataTables_paginate {
+        margin-top: 10px;
     }
 }
 </style>
@@ -79,7 +93,6 @@ body {
 
 <div class="card shadow-sm">
 
-    <!-- HEADER -->
     <div class="page-title">
         Sales History
     </div>
@@ -87,41 +100,54 @@ body {
     <div class="card-body">
 
         <!-- SEARCH -->
-        <div class="search-box">
-            <input type="text" id="search" class="form-control" placeholder="Search receipt, payment, etc...">
-            <input type="date" id="from" class="form-control">
-            <input type="date" id="to" class="form-control">
+
+        <!-- 🔍 SEARCH -->
+        <div class="search-box d-flex flex-wrap gap-2 align-items-center">
+
+            <!-- SEARCH -->
+            <div class="flex-grow-1 search-input">
+                <b>Search receipt/payment...</b>
+                <input type="text" id="search" class="form-control" placeholder="Search receipt, payment, etc...">
+            </div>
+
+            <!-- FROM -->
+            <div>
+                <b>From</b>
+                <input type="date" id="from" class="form-control date-input">
+            </div>
+
+            <!-- TO -->
+            <div>
+                <b>To</b>
+                <input type="date" id="to" class="form-control date-input">
+            </div>
+
         </div>
+        
 
         <!-- TABLE -->
-        <div class="table-responsive">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Receipt No</th>
-                        <th>Total</th>
-                        <th>Payment Method</th>
-                        <th>Transaction Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-
-        <!-- PAGINATION -->
-        <div id="pagination"></div>
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered  dt-responsive nowrap"  id="historyTable">
+            <thead>
+                <tr>
+                    <th>S/N</th>
+                    <th>Receipt No</th>
+                    <th>Total</th>
+                    <th>Payment Method</th>
+                    <th>Transaction Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 
     </div>
 </div>
 
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-
 function formatMoney(value){
     return parseFloat(value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
@@ -129,66 +155,65 @@ function formatMoney(value){
     });
 }
 
-// LOAD DATA
-function loadData(page = 1){
+$(document).ready(function () {
 
-    $.get("{{ route('sales.person.history.data') }}", {
-        page: page,
-        search: $('#search').val(),
-        from: $('#from').val(),
-        to: $('#to').val()
-    }, function(res){
+   let table = $('#historyTable').DataTable({
+        processing: true,
+        serverSide: true,
 
-        let html = "";
+        responsive: false, // ❌ REMOVE "+" BUTTON
+        scrollX: true,     // ✅ ENABLE SCROLL
 
-        if(res.data.length === 0){
-            html = `<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>`;
-        } else {
+        pagingType: "simple", // ✅ ONLY PREV / NEXT
 
-            res.data.forEach(item => {
+        ajax: {
+            url: "{{ route('sales.person.history.data') }}",
+            data: function(d){
+                d.from = $('#from').val();
+                d.to = $('#to').val();
+            }
+        },
 
-                html += `
-                    <tr>
-                        <td>${item.receipt_no}</td>
-                        <td>₦${formatMoney(item.total_amount)}</td>
-                        <td>${item.payment_method}</td>
-                        <td>${item.created_at}</td>
-                        <td>
-                            <a href="/sales-items-page/${item.id}" class="btn btn-sm btn-primary">
-                                View Items
-                            </a>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
+        columns: [
+            { data: null },
+            { data: 'receipt_no' },
+            { 
+                data: 'total_amount',
+                render: function(data){
+                    return "₦" + formatMoney(data);
+                }
+            },
+            { data: 'payment_method' },
+            { data: 'created_at' },
+            { 
+                data: 'id',
+                render: function(data){
+                    return `<a href="/sales-items-page/${data}" class="btn btn-sm btn-primary">View Items</a>`;
+                }
+            }
+        ],
 
-        $('#tableBody').html(html);
+        columnDefs: [{
+            targets: 0,
+            render: function (data, type, row, meta) {
+                return meta.row + 1 + meta.settings._iDisplayStart;
+            }
+        }],
 
-        // SIMPLE PAGINATION
-        let pag = "";
-
-        for(let i = 1; i <= res.last_page; i++){
-            pag += `
-                <button class="btn btn-sm ${i === res.current_page ? 'btn-dark' : 'btn-light'}"
-                        onclick="loadData(${i})">
-                    ${i}
-                </button>
-            `;
-        }
-
-        $('#pagination').html(pag);
+        pageLength: 2
     });
-}
 
-// EVENTS
-$('#search, #from, #to').on('keyup change', function(){
-    loadData();
+    // ✅ USE DATATABLES BUILT-IN SEARCH
+    $('#search').on('keyup', function () {
+        table.search(this.value).draw();
+    });
+
+    // 📅 DATE FILTER
+    $('#from, #to').on('change', function () {
+        table.draw();
+    });
+
 });
-
-// INIT
-loadData();
-
 </script>
 
 @endsection

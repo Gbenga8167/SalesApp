@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Sale;
 use App\Models\SalesItem;
 use App\Models\SalesTransaction;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -533,18 +534,16 @@ public function salesPersonHistoryData(Request $request)
     $query = \DB::table('sales_transactions')
         ->where('cashier_id', auth()->id());
 
-    // 🔍 GLOBAL SEARCH
-    if ($request->search) {
-        $search = $request->search;
+    if ($request->search['value'] ?? null) {
+        $search = $request->search['value'];
 
         $query->where(function ($q) use ($search) {
-            $q->where('receipt_no', 'like', "%$search%")
-              ->orWhere('payment_method', 'like', "%$search%")
-              ->orWhere('total_amount', 'like', "%$search%");
+            $q->where('receipt_no', 'like', "%{$search}%")
+              ->orWhere('payment_method', 'like', "%{$search}%")
+              ->orWhere('total_amount', 'like', "%{$search}%");
         });
     }
 
-    // DATE FILTER
     if ($request->from && $request->to) {
         $query->whereBetween('created_at', [
             $request->from . ' 00:00:00',
@@ -552,11 +551,28 @@ public function salesPersonHistoryData(Request $request)
         ]);
     }
 
-    $transactions = $query
-        ->orderBy('id', 'desc')
-        ->paginate(2);
+    $settings = Setting::first(); // ✅ get timezone
 
-    return response()->json($transactions);
+    $total = $query->count();
+
+    $data = $query
+        ->orderBy('id', 'desc')
+        ->offset($request->start)
+        ->limit($request->length)
+        ->get();
+
+    foreach ($data as $row) {
+        $row->created_at = Carbon::parse($row->created_at)
+            ->timezone($settings->timezone ?? 'Africa/Lagos')
+            ->format('d M Y h:i A');
+    }
+
+    return response()->json([
+        "draw" => intval($request->draw),
+        "recordsTotal" => $total,
+        "recordsFiltered" => $total,
+        "data" => $data
+    ]);
 }
 
 
