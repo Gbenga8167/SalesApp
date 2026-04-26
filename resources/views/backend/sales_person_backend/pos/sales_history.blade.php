@@ -15,7 +15,7 @@ body {
 
 /* HEADER */
 .page-title {
-    background: linear-gradient(45deg, #343a40, #212529);
+    background: #198754;
     color: #fff;
     padding: 12px 15px;
     font-weight: 600;
@@ -41,12 +41,31 @@ body {
 .table th {
     font-weight: 600;
     font-size: 15px;
+    white-space: nowrap;
 }
 
-.table td {
-    font-size: 15px;
-    font-weight: 500;
-    vertical-align: middle;
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+/* FULL WIDTH FIX */
+.dataTables_wrapper {
+    width: 100% !important;
+}
+
+/* SCROLL TABLE AREA */
+.dataTables_scrollBody {
+    max-height: 400px;
+}
+
+/* STICKY HEADER */
+table.dataTable thead th {
+    position: sticky;
+    top: 0;
+    background: #198754;
+    color: white;
+    z-index: 10;
 }
 
 /* BUTTON */
@@ -54,37 +73,27 @@ body {
     font-weight: 500;
 }
 
-/* 🔥 FIX DATATABLE "+" BUTTON ALIGNMENT */
+/* ❌ REMOVE + RESPONSIVE ICON COMPLETELY */
 table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child:before,
 table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child:before {
-    top: 50%;
-    left: 8px;
-    transform: translateY(-50%);
-    margin-top: 0;
+    display: none !important;
 }
 
-/* Give space so it doesn't overlap S/N */
-table.dataTable.dtr-inline.collapsed > tbody > tr > td:first-child,
-table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
-    padding-left: 30px !important;
+/* PREV / NEXT SMALLER */
+.dataTables_paginate {
+    margin-top: 10px;
+    font-size: 13px;
 }
 
-/* 🔥 SMALLER PAGINATION ON MOBILE ONLY */
+.dataTables_paginate .paginate_button {
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+}
+
+/* MOBILE STACK */
 @media (max-width: 768px) {
-
-    .dataTables_paginate {
-        text-align: center !important;
-    }
-
-    .dataTables_paginate .paginate_button {
-        padding: 3px 8px !important;
-        font-size: 12px !important;
-        margin: 2px !important;
-    }
-
-    /* spacing */
-    .dataTables_wrapper .dataTables_paginate {
-        margin-top: 10px;
+    .search-box {
+        flex-direction: column;
     }
 }
 </style>
@@ -100,46 +109,40 @@ table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
     <div class="card-body">
 
         <!-- SEARCH -->
-
-        <!-- 🔍 SEARCH -->
         <div class="search-box d-flex flex-wrap gap-2 align-items-center">
 
-            <!-- SEARCH -->
             <div class="flex-grow-1 search-input">
                 <b>Search receipt/payment...</b>
                 <input type="text" id="search" class="form-control" placeholder="Search receipt, payment, etc...">
             </div>
 
-            <!-- FROM -->
             <div>
                 <b>From</b>
                 <input type="date" id="from" class="form-control date-input">
             </div>
 
-            <!-- TO -->
             <div>
                 <b>To</b>
                 <input type="date" id="to" class="form-control date-input">
             </div>
 
         </div>
-        
 
         <!-- TABLE -->
-    <div class="table-responsive">
-        <table class="table table-sm table-bordered  dt-responsive nowrap"  id="historyTable">
-            <thead>
-                <tr>
-                    <th>S/N</th>
-                    <th>Receipt No</th>
-                    <th>Total</th>
-                    <th>Payment Method</th>
-                    <th>Transaction Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-        </table>
-    </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered nowrap" id="historyTable" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>S/N</th>
+                        <th>Receipt No</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Transaction Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
 
     </div>
 </div>
@@ -148,6 +151,7 @@ table.dataTable.dtr-inline.collapsed > tbody > tr > th:first-child {
 
 
 <script>
+
 function formatMoney(value){
     return parseFloat(value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
@@ -157,18 +161,19 @@ function formatMoney(value){
 
 $(document).ready(function () {
 
-   let table = $('#historyTable').DataTable({
+    let table = $('#historyTable').DataTable({
         processing: true,
         serverSide: true,
 
-        responsive: false, // ❌ REMOVE "+" BUTTON
-        scrollX: true,     // ✅ ENABLE SCROLL
+        pagingType: "simple", // Prev / Next only
 
-        pagingType: "simple", // ✅ ONLY PREV / NEXT
+        scrollX: true,       // horizontal scroll
+        scrollCollapse: true,
 
         ajax: {
             url: "{{ route('sales.person.history.data') }}",
             data: function(d){
+                d.search_value = $('#search').val();
                 d.from = $('#from').val();
                 d.to = $('#to').val();
             }
@@ -200,20 +205,19 @@ $(document).ready(function () {
             }
         }],
 
-        pageLength: 2
+        pageLength: 10
     });
 
-    // ✅ USE DATATABLES BUILT-IN SEARCH
     $('#search').on('keyup', function () {
         table.search(this.value).draw();
     });
 
-    // 📅 DATE FILTER
     $('#from, #to').on('change', function () {
         table.draw();
     });
 
 });
+
 </script>
 
 @endsection

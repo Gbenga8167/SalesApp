@@ -8,7 +8,7 @@ body {
 
 /* HEADER */
 .page-title {
-    background: linear-gradient(45deg, #343a40, #212529);
+    background: #198754;
     color: #fff;
     padding: 12px 15px;
     border-radius: 8px 8px 0 0;
