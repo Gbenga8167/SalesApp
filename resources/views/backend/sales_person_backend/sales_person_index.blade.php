@@ -180,7 +180,7 @@
 <script>
 
 function formatMoney(value){
-    return parseFloat(value).toLocaleString();
+    return parseFloat(value || 0).toLocaleString();
 }
 
 $(document).ready(function(){
@@ -191,81 +191,132 @@ $(document).ready(function(){
         $('#totalTransactions').text(res.totalTransactions);
         $('#itemsSold').text(res.itemsSold);
 
+        if(!res.salesChart || res.salesChart.length === 0) return;
+
         new Chart(document.getElementById('salesChart'), {
             type: 'line',
             data: {
-                labels: res.salesChart.map(i => i.hour + ":00"),
+                labels: res.salesChart.map(i => i.hour),
                 datasets: [{
+                    label: "Today's Sales (₦)",
                     data: res.salesChart.map(i => i.total),
                     borderWidth: 2,
-                    fill: false
+                    fill: false,
+                    tension: 0.4
                 }]
             },
             options:{
+                responsive:true,
                 plugins:{
                     tooltip:{
                         enabled:true,
                         mode:'index',
                         intersect:false
                     }
+                },
+                scales:{
+                    y:{ beginAtZero:true }
                 }
             }
         });
 
     });
 
-});
 
-// PAYMENT
-fetch("{{ route('sales.payment.chart') }}")
-.then(r=>r.json())
-.then(data=>{
-    new Chart(document.getElementById('paymentChart'), {
-        type:'pie',
-        data:{
-            labels:data.map(i=>i.payment_method),
-            datasets:[{data:data.map(i=>i.total)}]
-        },
-        options:{
-            plugins:{ tooltip:{ enabled:true } }
-        }
+    
+
+    // ======================
+    // PAYMENT (TODAY)
+    // ======================
+    fetch("{{ route('sales.payment.chart') }}")
+    .then(r=>r.json())
+    .then(data=>{
+
+        if(!data.length) return;
+
+        new Chart(document.getElementById('paymentChart'), {
+            type:'pie',
+            data:{
+                labels:data.map(i=>i.payment_method),
+                datasets:[{
+                    data:data.map(i=>i.total)
+                }]
+            }
+        });
+
     });
-});
 
-// DAILY
-fetch("{{ route('sales.daily.chart') }}")
-.then(r=>r.json())
-.then(data=>{
+
+    // ======================
+    // DAILY SALES (🔥 FIXED)
+    // ======================
+    fetch("{{ route('sales.daily.chart') }}")
+.then(r => r.json())
+.then(data => {
+
+    if(!data.length) return;
+
     new Chart(document.getElementById('dailySalesChart'), {
-        type:'line',
-        data:{
-            labels:data.map(i=>i.date),
-            datasets:[{data:data.map(i=>i.total), fill:true}]
-        }
-    });
-});
-
-// TOP PRODUCTS
-fetch("{{ route('sales.top.products.chart') }}")
-.then(r=>r.json())
-.then(data=>{
-    new Chart(document.getElementById('topProductsChart'), {
-        type:'bar',
-        data:{
-            labels:data.map(i=>i.product_label),
-            datasets:[{data:data.map(i=>i.total_qty)}]
+        type: 'line',
+        data: {
+            labels: data.map(i => i.date),   // ✅ FIXED HERE
+            datasets: [{
+                label: "Daily Sales (₦)",
+                data: data.map(i => i.total),
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2
+            }]
         },
-        options:{
-            plugins:{
-                tooltip:{
-                    callbacks:{
-                        label: ctx => "Sold: " + ctx.raw
-                    }
-                }
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
             }
         }
     });
+
 });
+
+
+});
+
+
+
+    // ======================
+    // TOP PRODUCTS (TODAY)
+    // ======================
+    fetch("{{ route('sales.top.products.chart') }}")
+    .then(r=>r.json())
+    .then(data=>{
+
+        if(!data.length) return;
+
+        new Chart(document.getElementById('topProductsChart'), {
+            type:'bar',
+            data:{
+                labels:data.map(i=>i.product_label),
+                datasets:[{
+                    label:"Qty Sold",
+                    data:data.map(i=>i.total_qty)
+                }]
+            },
+            options:{
+                plugins:{
+                    tooltip:{
+                        callbacks:{
+                            label: ctx => "Sold: " + ctx.raw
+                        }
+                    }
+                },
+                scales:{
+                    y:{ beginAtZero:true }
+                }
+            }
+        });
+
+    });
+
 
 </script>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SalesPerson;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -37,7 +38,7 @@ class SalesPersonAccountController extends Controller
 
     //SALES PERSON DASHBOARD
 
-//SALES PERSON DASHBOARD 
+//SALES PERSON DASHBOARD  GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDDD
 public function dashboardData()
 {
     $userId = auth()->id();
@@ -62,31 +63,45 @@ public function dashboardData()
         ->sum('sales_items.quantity');
 
     // ✅ SALES TREND (TODAY ONLY 🔥)
-    $salesChart = \DB::table('sales_transactions')
-        ->selectRaw('HOUR(created_at) as hour, SUM(total_amount) as total')
-        ->where('cashier_id', $userId)
-        ->whereDate('created_at', today())
-        ->groupBy('hour')
-        ->orderBy('hour', 'ASC')
-        ->get();
 
-    return response()->json([
-        'todaySales' => $todaySales,
-        'totalTransactions' => $totalTransactions,
-        'itemsSold' => $itemsSold,
-        'salesChart' => $salesChart,
-    ]);
+     $salesChartRaw = \DB::table('sales_transactions')
+    ->selectRaw("
+        HOUR(CONVERT_TZ(created_at, '+00:00', '+01:00')) as hour,
+        SUM(total_amount) as total
+    ")
+    ->where('cashier_id', $userId)
+    ->whereDate('created_at', today())
+    ->groupBy('hour')
+    ->orderBy('hour')
+    ->pluck('total', 'hour');
+
+    $salesChart = [];
+
+    for ($i = 0; $i < 24; $i++) {
+
+    $salesChart[] = [
+        'hour' => Carbon::createFromTime($i, 0, 0)->format('g A'),
+        'total' => $salesChartRaw[$i] ?? 0
+    ];
+}
+
+return response()->json([
+    'todaySales' => $todaySales,
+    'totalTransactions' => $totalTransactions,
+    'itemsSold' => $itemsSold,
+    'salesChart' => $salesChart,
+]);
+
 }
 
 
-
-//PAYMENT CHART DATA
+// PAYMENT CHART DATA (TODAY)
 public function paymentChartData()
 {
     $data = \DB::table('sales_transactions')
         ->select('payment_method', \DB::raw('COUNT(*) as total'))
         ->where('cashier_id', auth()->id())
-        ->whereDate('created_at', today()) // ✅ TODAY FILTER
+        ->whereDate('created_at', today())
         ->groupBy('payment_method')
         ->get();
 
@@ -94,35 +109,32 @@ public function paymentChartData()
 }
 
 
-//DAILY SALES CHART
+// DAILY SALES CHART (TODAY → HOURLY TREND)
 public function dailySalesChart()
 {
     $data = \DB::table('sales_transactions')
-        ->selectRaw('HOUR(created_at) as hour, SUM(total_amount) as total')
+        ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
         ->where('cashier_id', auth()->id())
-        ->whereDate('created_at', today()) // ✅ TODAY ONLY
-        ->groupBy('hour')
-        ->orderBy('hour', 'ASC')
+        ->whereDate('created_at', '>=', now()->subDays(7))
+        ->groupBy('date')
+        ->orderBy('date', 'ASC')
         ->get();
 
     return response()->json($data);
 }
 
 
-//TOP PRODUCTS CHART
+// TOP PRODUCTS (TODAY)
 public function topProductsChart()
 {
     $data = \DB::table('sales_items')
         ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
-
         ->where('sales_transactions.cashier_id', auth()->id())
-        ->whereDate('sales_transactions.created_at', today()) // ✅ TODAY FILTER
-
+        ->whereDate('sales_transactions.created_at', today())
         ->select(
             \DB::raw("CONCAT(sales_items.product_name, ' - ', sales_items.category) as product_label"),
             \DB::raw('SUM(sales_items.quantity) as total_qty')
         )
-
         ->groupBy('sales_items.product_name', 'sales_items.category')
         ->orderByDesc('total_qty')
         ->limit(10)
@@ -130,4 +142,5 @@ public function topProductsChart()
 
     return response()->json($data);
 }
+
 }
