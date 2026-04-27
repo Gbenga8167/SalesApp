@@ -51,6 +51,12 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('sales-person/logout','SalesPersonLogout')->name('sales.person.logout');
     Route::get('sales-person/profile','SalesPersonProfile')->name('sales.person.profile');
 
+    //SALES PERSON DASHBOARD ALL ROUTE
+    Route::get('/sales/dashboard-data', 'dashboardData')->name('sales.dashboard.data');
+    Route::get('/sales/payment-chart-data', 'paymentChartData')->name('sales.payment.chart');
+    Route::get('/sales/daily-chart', 'dailySalesChart')->name('sales.daily.chart');
+    Route::get('/sales/top-products-chart', 'topProductsChart')->name('sales.top.products.chart');
+
 });
 
     Route::controller(SalesPersonPOSController::class)->group(function(){
