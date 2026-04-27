@@ -161,7 +161,7 @@
     </div>
 
     <div class="chart-card">
-        <div class="chart-header">Daily Sales</div>
+        <div class="chart-header">Last 7 Days Sales</div>
         <canvas id="dailySalesChart"></canvas>
     </div>
 
@@ -183,46 +183,66 @@ function formatMoney(value){
     return parseFloat(value || 0).toLocaleString();
 }
 
+
+    // ======================
+    // DAILY TREND
+    // ======================
 $(document).ready(function(){
 
-    $.get("{{ route('sales.dashboard.data') }}", function(res){
+$.get("{{ route('sales.dashboard.data') }}", function(res){
 
-        $('#todaySales').text("₦" + formatMoney(res.todaySales));
-        $('#totalTransactions').text(res.totalTransactions);
-        $('#itemsSold').text(res.itemsSold);
+    $('#todaySales').text("₦" + formatMoney(res.todaySales));
+    $('#totalTransactions').text(res.totalTransactions);
+    $('#itemsSold').text(res.itemsSold);
 
-        if(!res.salesChart || res.salesChart.length === 0) return;
+    if(!res.salesChart || res.salesChart.length === 0) return;
 
-        new Chart(document.getElementById('salesChart'), {
-            type: 'line',
-            data: {
-                labels: res.salesChart.map(i => i.hour),
-                datasets: [{
-                    label: "Today's Sales (₦)",
-                    data: res.salesChart.map(i => i.total),
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.4
-                }]
-            },
-            options:{
-                responsive:true,
-                plugins:{
-                    tooltip:{
-                        enabled:true,
-                        mode:'index',
-                        intersect:false
+    new Chart(document.getElementById('salesChart'), {
+        type: 'line',
+        data: {
+            labels: res.salesChart.map(i => i.hour),
+            datasets: [{
+                label: "Today's Sales (₦)",
+                data: res.salesChart.map(i => i.total),
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            }]
+        },
+        options:{
+            responsive:true,
+            plugins:{
+                tooltip:{
+                    callbacks: {
+
+                        label: function(context) {
+                            let value = context.raw || 0;
+
+                            return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
                     }
-                },
-                scales:{
-                    y:{ beginAtZero:true }
+                }
+            },
+            scales:{
+                y:{
+                    beginAtZero:true,
+                    ticks: {
+                        callback: function(value) {
+                            return "₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
                 }
             }
-        });
-
+        }
     });
 
-
+});
     
 
     // ======================
@@ -250,7 +270,7 @@ $(document).ready(function(){
     // ======================
     // DAILY SALES (🔥 FIXED)
     // ======================
-    fetch("{{ route('sales.daily.chart') }}")
+fetch("{{ route('sales.daily.chart') }}")
 .then(r => r.json())
 .then(data => {
 
@@ -259,9 +279,9 @@ $(document).ready(function(){
     new Chart(document.getElementById('dailySalesChart'), {
         type: 'line',
         data: {
-            labels: data.map(i => i.date),   // ✅ FIXED HERE
+            labels: data.map(i => i.date),
             datasets: [{
-                label: "Daily Sales (₦)",
+                label: "Last 7 Days Sales (₦)",
                 data: data.map(i => i.total),
                 fill: true,
                 tension: 0.4,
@@ -270,14 +290,42 @@ $(document).ready(function(){
         },
         options: {
             responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+
+                        title: function(context) {
+                            return "Date: " + context[0].label;
+                        },
+
+                        label: function(context) {
+                            let value = context.raw || 0;
+
+                            return "Total Sales: ₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return "₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
             }
         }
     });
 
 });
-
 
 });
 
