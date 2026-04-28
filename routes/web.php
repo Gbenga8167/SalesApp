@@ -141,7 +141,7 @@ Route::get('/sales-person/dashboard', function () {
 
 
 
-    //ADMIN DASHBOARD ALL ROUTE
+    //ADMIN DASHBOARD CARDS AND CHART (INDEX PAGE) ALL ROUTE
     Route::get('/dashboard-data', 'dashboardData')->name('admin.dashboard.data');
     Route::get('/payment-chart', 'paymentChartData')->name('admin.payment.chart');
     Route::get('/daily-chart', 'dailySalesChart')->name('admin.daily.chart');

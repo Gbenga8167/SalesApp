@@ -117,7 +117,7 @@ public function ManageStock(Request $request){
         });
     }
 
-    $sales = $query->paginate(3)->withQueryString();
+    $sales = $query->paginate(10)->withQueryString();
 
     // 🔥 PROCESS AFTER PAGINATION
     $sales->getCollection()->transform(function ($row) {
@@ -136,6 +136,23 @@ public function ManageStock(Request $request){
         $row->total_purchased = $totalPurchased;
         $row->available_stock = $totalPurchased - $row->total_sold;
         $row->selling_price = $latestPrice ?? 0;
+
+
+    // =========================================================
+    // 🔥 ADDED REAL-TIME STOCK (NO CHANGE TO EXISTING LOGIC)
+    // =========================================================
+
+    $totalStock = \DB::table('sales')
+        ->where('product_name', $row->product_name)
+        ->where('category', $row->category)
+        ->sum('quantity');
+
+    $totalSold = \DB::table('sales_items')
+        ->where('product_name', $row->product_name)
+        ->where('category', $row->category)
+        ->sum('quantity');
+
+    $row->real_time_stock = $totalStock - $totalSold;
 
         return $row;
     });

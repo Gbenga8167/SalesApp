@@ -2,8 +2,6 @@
 @section('admin')
 
 <style>
-
-/* SAME STYLE (NO CHANGE) */
 .container-fluid{ padding: 15px; }
 
 .row-cards,
@@ -60,7 +58,6 @@
 .card-transactions { background: linear-gradient(135deg,#1e3a8a,#2563eb); }
 .card-items { background: linear-gradient(135deg,#6d28d9,#a855f7); }
 
-/* CHART */
 .chart-card{
     background:#fff;
     border-radius:14px;
@@ -81,7 +78,6 @@
     flex:1;
     max-height:180px;
 }
-
 </style>
 
 <div class="container-fluid">
@@ -142,101 +138,129 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
 
 function formatMoney(value){
-    return parseFloat(value || 0).toLocaleString();
+    return Number(value || 0).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
-$(document).ready(function(){
+/* =========================
+   GLOBAL LIVE FUNCTION
+========================= */
 
-// ================= SALES TREND =================
+let salesChartInstance;
+let paymentChartInstance;
+let dailyChartInstance;
+let topChartInstance;
+
+function loadDashboard(){
+
 $.get("{{ route('admin.dashboard.data') }}", function(res){
 
+    // ===== CARDS (LIVE) =====
     $('#todaySales').text("₦" + formatMoney(res.todaySales));
     $('#totalTransactions').text(res.totalTransactions);
     $('#itemsSold').text(res.itemsSold);
 
-    if(!res.salesChart.length) return;
+    // ===== SALES CHART =====
+    if(res.salesChart.length){
 
-    new Chart(document.getElementById('salesChart'), {
-        type:'line',
-        data:{
-            labels: res.salesChart.map(i=>i.hour),
-            datasets:[{
-                label:"Total Sales (₦)",
-                data: res.salesChart.map(i=>i.total),
-                tension:0.4,
-                borderWidth:2
-            }]
-        },
-        options:{
-            plugins:{
-                tooltip:{
-                    callbacks:{
-                        // 🔥 SHOW TIME RANGE
-                        title: function(context){
-                            let hour = context[0].label;
-                            return "Time: " + hour + " - " + hour.replace(/(\d+)/, function(h){
-                                return parseInt(h)+1;
-                            });
-                        },
+        if(salesChartInstance){
+            salesChartInstance.destroy();
+        }
 
-                        // 🔥 ADD .00 FORMAT
-                        label: function(context){
-                            let value = context.raw || 0;
+        salesChartInstance = new Chart(document.getElementById('salesChart'), {
+            type:'line',
+            data:{
+                labels: res.salesChart.map(i=>i.hour),
+                datasets:[{
+                    label:"Total Sales (₦)",
+                    data: res.salesChart.map(i=>i.total),
+                    tension:0.4,
+                    borderWidth:2
+                }]
+            },
+            options:{
+                plugins:{
+                    tooltip:{
+                        callbacks:{
+                            title: function(context){
+                                return "Time: " + context[0].label;
+                            },
+                            label: function(context){
+                                let value = context.raw || 0;
 
-                            return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                                return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+                            }
                         }
                     }
-                }
-            },
-            scales:{
-                y:{
-                    beginAtZero:true,
-                    ticks:{
-                        callback: function(value){
-                            return "₦" + Number(value).toLocaleString('en-NG', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                },
+                scales:{
+                    y:{
+                        beginAtZero:true,
+                        ticks:{
+                            callback: function(value){
+                                return "₦" + Number(value).toLocaleString('en-NG', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 
 });
+}
 
-});
-
-// ================= PAYMENT =================
+/* =========================
+   PAYMENT CHART
+========================= */
+function loadPayment(){
 fetch("{{ route('admin.payment.chart') }}")
 .then(r=>r.json())
 .then(data=>{
-    if(!data.length) return;
 
-    new Chart(document.getElementById('paymentChart'), {
+    if(paymentChartInstance){
+        paymentChartInstance.destroy();
+    }
+
+    paymentChartInstance = new Chart(document.getElementById('paymentChart'), {
         type:'pie',
         data:{
             labels:data.map(i=>i.payment_method),
             datasets:[{data:data.map(i=>i.total)}]
         }
     });
-});
 
-// ================= DAILY =================
+});
+}
+
+/* =========================
+   DAILY CHART
+========================= */
+function loadDaily(){
+
 fetch("{{ route('admin.daily.chart') }}")
 .then(r=>r.json())
 .then(data=>{
-    if(!data.length) return;
 
-    new Chart(document.getElementById('dailySalesChart'), {
+    if(dailyChartInstance){
+        dailyChartInstance.destroy();
+    }
+
+    dailyChartInstance = new Chart(document.getElementById('dailySalesChart'), {
         type:'line',
         data:{
             labels:data.map(i=>i.date),
@@ -282,14 +306,21 @@ fetch("{{ route('admin.daily.chart') }}")
     });
 
 });
+}
 
-// ================= TOP PRODUCTS =================
+/* =========================
+   TOP PRODUCTS
+========================= */
+function loadTop(){
 fetch("{{ route('admin.top.products.chart') }}")
 .then(r=>r.json())
 .then(data=>{
-    if(!data.length) return;
 
-    new Chart(document.getElementById('topProductsChart'), {
+    if(topChartInstance){
+        topChartInstance.destroy();
+    }
+
+    topChartInstance = new Chart(document.getElementById('topProductsChart'), {
         type:'bar',
         data:{
             labels:data.map(i=>i.product_label),
@@ -298,11 +329,31 @@ fetch("{{ route('admin.top.products.chart') }}")
             }]
         }
     });
+
+});
+}
+
+/* =========================
+   INIT LIVE SYSTEM
+========================= */
+
+$(document).ready(function(){
+
+    loadDashboard();
+    loadPayment();
+    loadDaily();
+    loadTop();
+
+    // 🔥 LIVE REFRESH (NO PAGE RELOAD)
+    setInterval(function(){
+        loadDashboard();
+        loadPayment();
+        loadDaily();
+        loadTop();
+    }, 15000); // 15 seconds (safe + smooth)
+
 });
 
-
 </script>
-
-
 
 @endsection

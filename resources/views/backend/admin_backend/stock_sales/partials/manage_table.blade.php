@@ -1,3 +1,6 @@
+
+<div id="table-wrapper">
+    <div id="table-data">
 <table>
 <thead>
 <tr>
@@ -7,6 +10,7 @@
 <th>All Stock</th>
 <th>Goods in Stock</th>
 <th>Goods On Sales</th>
+<th>Real Time Stock</th>
 <th>Selling Price</th>
 <th>Expected Amount (₦)</th>
 <th>Action</th>
@@ -36,6 +40,12 @@
 
 <td>
     {{ $row->total_sold }}
+</td>
+
+<td>
+    <strong style="color:green;">
+        {{ $row->real_time_stock }}
+    </strong>
 </td>
 
 <td>
@@ -76,6 +86,35 @@
     {{ $sales->links('pagination::bootstrap-5') }}
 </div>
 
+    </div>
 </div>
 
 
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+function reloadTable() {
+    $.ajax({
+        url: window.location.href,
+        type: "GET",
+        success: function (response) {
+
+            // 🔥 extract ONLY inner table content safely
+            let newContent = $(response).find("#table-data").html();
+
+            if (newContent) {
+                $("#table-data").html(newContent);
+            }
+        }
+    });
+}
+
+// 🔥 wait for DOM fully read REFRESH PAGE EVERY 5 SECONDS
+$(document).ready(function () {
+    setInterval(reloadTable, 5000);
+});
+
+</script>

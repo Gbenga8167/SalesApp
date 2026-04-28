@@ -256,7 +256,7 @@ public function topProductsChart()
 }
 
 
-// ================= HELPER (VERY IMPORTANT 🔥) =================
+// ================= ADD THIS HELPER TO CONVERT THE TIME UTC FROM DATA BASE TO ADMIN SET TIME ZONE =================
 private function getMysqlOffset($timezone)
 {
     $now = new \DateTime("now", new \DateTimeZone($timezone));
