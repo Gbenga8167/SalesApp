@@ -128,4 +128,95 @@ class AdminController extends Controller
     }
 
 
+
+
+    //ADMIN DASHBOARD AND CHART
+    public function dashboardData()
+{
+    // ✅ TODAY SALES (ALL SALES PERSON)
+    $todaySales = \DB::table('sales_transactions')
+        ->whereDate('created_at', today())
+        ->sum('total_amount');
+
+    // ✅ TODAY TRANSACTIONS
+    $totalTransactions = \DB::table('sales_transactions')
+        ->whereDate('created_at', today())
+        ->count();
+
+    // ✅ ITEMS SOLD
+    $itemsSold = \DB::table('sales_items')
+        ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
+        ->whereDate('sales_transactions.created_at', today())
+        ->sum('sales_items.quantity');
+
+    // ✅ SALES TREND (TODAY HOURLY)
+    $salesChartRaw = \DB::table('sales_transactions')
+        ->selectRaw("
+            HOUR(CONVERT_TZ(created_at, '+00:00', '+01:00')) as hour,
+            SUM(total_amount) as total
+        ")
+        ->whereDate('created_at', today())
+        ->groupBy('hour')
+        ->orderBy('hour')
+        ->pluck('total', 'hour');
+
+    $salesChart = [];
+
+    for ($i = 0; $i < 24; $i++) {
+        $salesChart[] = [
+            'hour' => \Carbon\Carbon::createFromTime($i, 0, 0)->format('g A'),
+            'total' => $salesChartRaw[$i] ?? 0
+        ];
+    }
+
+    return response()->json([
+        'todaySales' => $todaySales,
+        'totalTransactions' => $totalTransactions,
+        'itemsSold' => $itemsSold,
+        'salesChart' => $salesChart,
+    ]);
+}
+
+
+public function paymentChartData()
+{
+    $data = \DB::table('sales_transactions')
+        ->select('payment_method', \DB::raw('COUNT(*) as total'))
+        ->whereDate('created_at', today())
+        ->groupBy('payment_method')
+        ->get();
+
+    return response()->json($data);
+}
+
+
+public function dailySalesChart()
+{
+    $data = \DB::table('sales_transactions')
+        ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+        ->whereDate('created_at', '>=', now()->subDays(7))
+        ->groupBy('date')
+        ->orderBy('date', 'ASC')
+        ->get();
+
+    return response()->json($data);
+}
+
+
+public function topProductsChart()
+{
+    $data = \DB::table('sales_items')
+        ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
+        ->whereDate('sales_transactions.created_at', today())
+        ->select(
+            \DB::raw("CONCAT(sales_items.product_name, ' - ', sales_items.category) as product_label"),
+            \DB::raw('SUM(sales_items.quantity) as total_qty')
+        )
+        ->groupBy('sales_items.product_name', 'sales_items.category')
+        ->orderByDesc('total_qty')
+        ->limit(10)
+        ->get();
+
+    return response()->json($data);
+}
 }

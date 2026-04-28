@@ -38,7 +38,7 @@ Route::get('/', function () {
 
 
 
-//sales_person_backend Route for student dashboard
+//SALES PERSON DASHBOARD ROUTE
 Route::get('/sales-person/dashboard', function () {
     return view('backend.sales_person_backend.sales_person_index');
 })->middleware(['auth', 'verified', 'sales.person'])->name('sales_person.dashboard');
@@ -46,7 +46,7 @@ Route::get('/sales-person/dashboard', function () {
 
     //Sales Person All Route  
     Route::middleware(['auth', 'sales.person'])->group(function(){
-    //Start Student All Route  
+   
     Route::controller(SalesPersonAccountController::class)->group(function(){
     Route::get('sales-person/logout','SalesPersonLogout')->name('sales.person.logout');
     Route::get('sales-person/profile','SalesPersonProfile')->name('sales.person.profile');
@@ -61,20 +61,28 @@ Route::get('/sales-person/dashboard', function () {
 
     Route::controller(SalesPersonPOSController::class)->group(function(){
 
+    //POS ROUTE INDEX PAGE
     Route::get('/pos', 'index')->name('sales.pos');
 
+    //POS addToCart
     Route::post('/cart/add',  'addToCart')->name('cart.add');
 
+    //POS removeFromCart
     Route::post('/cart/remove/{id}',  'removeFromCart')->name('cart.remove');
 
+    //POS updateCart
     Route::post('/cart/update',  'updateCart')->name('cart.update');
 
+    //POS getCart
     Route::get('/cart',  'getCart')->name('cart.get');
 
+    //POS clearCart
     Route::post('/cart/clear',  'clearCart')->name('cart.clear');
 
+    //POS searchProducts
     Route::get('/sales-person/products/search', 'searchProducts')->name('sales.person.products.search');
 
+    //POS getProductDetails
     Route::get('/sales-person/product/details', 'getProductDetails')->name('sales.person.product.details');
 
     // PEND TRANSACTIONS
@@ -105,7 +113,7 @@ Route::get('/sales-person/dashboard', function () {
 
 
 
-});
+}); //END SALES PERSON DASHBOARD ROUTE
 
 
 
@@ -131,6 +139,13 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('admin/password/change','AdminPasswordChange')->name('admin.password.change');
     Route::post('admin/password/update','AdminPasswordUpdate')->name('admin.password.update');
 
+
+
+    //ADMIN DASHBOARD ALL ROUTE
+    Route::get('/dashboard-data', 'dashboardData')->name('admin.dashboard.data');
+    Route::get('/payment-chart', 'paymentChartData')->name('admin.payment.chart');
+    Route::get('/daily-chart', 'dailySalesChart')->name('admin.daily.chart');
+    Route::get('/top-products', 'topProductsChart')->name('admin.top.products.chart');
 });
 
 

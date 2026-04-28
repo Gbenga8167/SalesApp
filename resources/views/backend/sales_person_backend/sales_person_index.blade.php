@@ -31,7 +31,7 @@
    STAT CARDS
 ========================= */
 .stat-card {
-    border-radius: 16px;
+    border-radius: 10px;
     padding: 28px; /* 🔥 taller */
     display: flex;
     justify-content: space-between;
@@ -127,7 +127,7 @@
             <div class="stat-title">Today Sales</div>
             <div class="stat-value" id="todaySales">₦0</div>
         </div>
-        <div class="icon">💰</div>
+       
     </div>
 
     <div class="stat-card card-transactions">
@@ -135,7 +135,7 @@
             <div class="stat-title">Transactions</div>
             <div class="stat-value" id="totalTransactions">0</div>
         </div>
-        <div class="icon">🧾</div>
+       
     </div>
 
     <div class="stat-card card-items">
@@ -143,7 +143,7 @@
             <div class="stat-title">Items Sold</div>
             <div class="stat-value" id="itemsSold">0</div>
         </div>
-        <div class="icon">📦</div>
+        
     </div>
 
 </div>
