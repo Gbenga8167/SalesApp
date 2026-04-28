@@ -142,8 +142,6 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
 
@@ -172,8 +170,48 @@ $.get("{{ route('admin.dashboard.data') }}", function(res){
                 tension:0.4,
                 borderWidth:2
             }]
+        },
+        options:{
+            plugins:{
+                tooltip:{
+                    callbacks:{
+                        // 🔥 SHOW TIME RANGE
+                        title: function(context){
+                            let hour = context[0].label;
+                            return "Time: " + hour + " - " + hour.replace(/(\d+)/, function(h){
+                                return parseInt(h)+1;
+                            });
+                        },
+
+                        // 🔥 ADD .00 FORMAT
+                        label: function(context){
+                            let value = context.raw || 0;
+
+                            return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            },
+            scales:{
+                y:{
+                    beginAtZero:true,
+                    ticks:{
+                        callback: function(value){
+                            return "₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            }
         }
     });
+
+});
 
 });
 
@@ -203,13 +241,46 @@ fetch("{{ route('admin.daily.chart') }}")
         data:{
             labels:data.map(i=>i.date),
             datasets:[{
-                label:"Last 7 Days Sales",
+                label:"Last 7 Days Sales (₦)",
                 data:data.map(i=>i.total),
                 fill:true,
                 tension:0.4
             }]
+        },
+        options:{
+            plugins:{
+                tooltip:{
+                    callbacks:{
+                        title: function(context){
+                            return "Date: " + context[0].label;
+                        },
+                        label: function(context){
+                            let value = context.raw || 0;
+
+                            return "Total: ₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            },
+            scales:{
+                y:{
+                    beginAtZero:true,
+                    ticks:{
+                        callback: function(value){
+                            return "₦" + Number(value).toLocaleString('en-NG', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            }
         }
     });
+
 });
 
 // ================= TOP PRODUCTS =================
@@ -229,7 +300,6 @@ fetch("{{ route('admin.top.products.chart') }}")
     });
 });
 
-});
 
 </script>
 

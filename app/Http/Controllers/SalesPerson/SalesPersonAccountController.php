@@ -39,69 +39,79 @@ class SalesPersonAccountController extends Controller
     //SALES PERSON DASHBOARD
 
 //SALES PERSON DASHBOARD  GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOODDDDDDDDDDDDDD
+
 public function dashboardData()
 {
     $userId = auth()->id();
 
-    // ✅ TODAY SALES (REVENUE)
+    $settings = \DB::table('settings')->first();
+    $tz = $settings->timezone ?? 'Africa/Lagos';
+
+    $start = Carbon::now($tz)->startOfDay()->timezone('UTC');
+    $end   = Carbon::now($tz)->endOfDay()->timezone('UTC');
+
+    // ✅ TODAY SALES
     $todaySales = \DB::table('sales_transactions')
         ->where('cashier_id', $userId)
-        ->whereDate('created_at', today())
+        ->whereBetween('created_at', [$start, $end])
         ->sum('total_amount');
 
-    // ✅ TODAY TRANSACTIONS
+    // ✅ TRANSACTIONS
     $totalTransactions = \DB::table('sales_transactions')
         ->where('cashier_id', $userId)
-        ->whereDate('created_at', today())
+        ->whereBetween('created_at', [$start, $end])
         ->count();
 
-    // ✅ ITEMS SOLD (REAL QUANTITY)
+    // ✅ ITEMS SOLD
     $itemsSold = \DB::table('sales_items')
         ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
         ->where('sales_transactions.cashier_id', $userId)
-        ->whereDate('sales_transactions.created_at', today())
+        ->whereBetween('sales_transactions.created_at', [$start, $end])
         ->sum('sales_items.quantity');
 
-    // ✅ SALES TREND (TODAY ONLY 🔥)
-
-     $salesChartRaw = \DB::table('sales_transactions')
-    ->selectRaw("
-        HOUR(CONVERT_TZ(created_at, '+00:00', '+01:00')) as hour,
-        SUM(total_amount) as total
-    ")
-    ->where('cashier_id', $userId)
-    ->whereDate('created_at', today())
-    ->groupBy('hour')
-    ->orderBy('hour')
-    ->pluck('total', 'hour');
+    // ✅ SALES TREND
+    $salesChartRaw = \DB::table('sales_transactions')
+        ->selectRaw("
+            HOUR(CONVERT_TZ(created_at, '+00:00', ?)) as hour,
+            SUM(total_amount) as total
+        ", [$this->getMysqlOffset($tz)])
+        ->where('cashier_id', $userId)
+        ->whereBetween('created_at', [$start, $end])
+        ->groupBy('hour')
+        ->orderBy('hour')
+        ->pluck('total', 'hour');
 
     $salesChart = [];
 
     for ($i = 0; $i < 24; $i++) {
+        $salesChart[] = [
+            'hour' => Carbon::createFromTime($i, 0, 0)->format('g A'),
+            'total' => $salesChartRaw[$i] ?? 0
+        ];
+    }
 
-    $salesChart[] = [
-        'hour' => Carbon::createFromTime($i, 0, 0)->format('g A'),
-        'total' => $salesChartRaw[$i] ?? 0
-    ];
-}
-
-return response()->json([
-    'todaySales' => $todaySales,
-    'totalTransactions' => $totalTransactions,
-    'itemsSold' => $itemsSold,
-    'salesChart' => $salesChart,
-]);
-
+    return response()->json([
+        'todaySales' => $todaySales,
+        'totalTransactions' => $totalTransactions,
+        'itemsSold' => $itemsSold,
+        'salesChart' => $salesChart,
+    ]);
 }
 
 
 // PAYMENT CHART DATA (TODAY)
 public function paymentChartData()
 {
+    $settings = \DB::table('settings')->first();
+    $tz = $settings->timezone ?? 'Africa/Lagos';
+
+    $start = Carbon::now($tz)->startOfDay()->timezone('UTC');
+    $end   = Carbon::now($tz)->endOfDay()->timezone('UTC');
+
     $data = \DB::table('sales_transactions')
         ->select('payment_method', \DB::raw('COUNT(*) as total'))
         ->where('cashier_id', auth()->id())
-        ->whereDate('created_at', today())
+        ->whereBetween('created_at', [$start, $end])
         ->groupBy('payment_method')
         ->get();
 
@@ -109,13 +119,23 @@ public function paymentChartData()
 }
 
 
+
 // DAILY SALES CHART (TODAY → HOURLY TREND)
 public function dailySalesChart()
 {
+    $settings = \DB::table('settings')->first();
+    $tz = $settings->timezone ?? 'Africa/Lagos';
+
+    $start = Carbon::now($tz)->subDays(6)->startOfDay()->timezone('UTC');
+    $end   = Carbon::now($tz)->endOfDay()->timezone('UTC');
+
     $data = \DB::table('sales_transactions')
-        ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+        ->selectRaw("
+            DATE(CONVERT_TZ(created_at, '+00:00', ?)) as date,
+            SUM(total_amount) as total
+        ", [$this->getMysqlOffset($tz)])
         ->where('cashier_id', auth()->id())
-        ->whereDate('created_at', '>=', now()->subDays(7))
+        ->whereBetween('created_at', [$start, $end])
         ->groupBy('date')
         ->orderBy('date', 'ASC')
         ->get();
@@ -127,10 +147,16 @@ public function dailySalesChart()
 // TOP PRODUCTS (TODAY)
 public function topProductsChart()
 {
+    $settings = \DB::table('settings')->first();
+    $tz = $settings->timezone ?? 'Africa/Lagos';
+
+    $start = Carbon::now($tz)->startOfDay()->timezone('UTC');
+    $end   = Carbon::now($tz)->endOfDay()->timezone('UTC');
+
     $data = \DB::table('sales_items')
         ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
         ->where('sales_transactions.cashier_id', auth()->id())
-        ->whereDate('sales_transactions.created_at', today())
+        ->whereBetween('sales_transactions.created_at', [$start, $end])
         ->select(
             \DB::raw("CONCAT(sales_items.product_name, ' - ', sales_items.category) as product_label"),
             \DB::raw('SUM(sales_items.quantity) as total_qty')
@@ -141,6 +167,16 @@ public function topProductsChart()
         ->get();
 
     return response()->json($data);
+}
+
+
+//ADD THIS HELPER TO CONVERT THE TIME UTC FROM DATA BASE TO ADMIN SET TIME ZONE
+private function getMysqlOffset($timezone)
+{
+    $now = new \DateTime("now", new \DateTimeZone($timezone));
+    $offset = $now->getOffset() / 3600;
+
+    return ($offset >= 0 ? '+' : '') . $offset . ':00';
 }
 
 }

@@ -29,6 +29,10 @@
         <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" id="bootstrap-style" rel="stylesheet" type="text/css" />
 
 
+        <!-- chart link -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
         
         <!-- Icons Css -->
         <link href="{{asset('BackendTem/assets/css/icons.min.css')}}" rel="stylesheet" type="text/css" />
