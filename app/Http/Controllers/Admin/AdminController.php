@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SalesItem;
+use App\Models\SalesTransaction;
+use App\Models\Setting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -265,4 +268,438 @@ private function getMysqlOffset($timezone)
     return ($offset >= 0 ? '+' : '') . $offset . ':00';
 }
 
+
+
+
+
+//ADMIN SALES REPORT 
+public function adminSalesHistory()
+{
+    return view('backend.admin_backend.admin_sales_report.sales_history');
+}
+
+public function adminSalesHistoryData(Request $request)
+{
+    $query = \DB::table('sales_transactions')
+        ->join('users', 'sales_transactions.cashier_id', '=', 'users.id')
+        ->select(
+            'sales_transactions.*',
+            'users.name as salesperson_name',
+            'users.user_name as username'
+        );
+
+    // 🔍 SEARCH
+    if ($request->search['value'] ?? null) {
+        $search = $request->search['value'];
+
+        $query->where(function ($q) use ($search) {
+            $q->where('sales_transactions.receipt_no', 'like', "%{$search}%")
+              ->orWhere('sales_transactions.payment_method', 'like', "%{$search}%")
+              ->orWhere('sales_transactions.total_amount', 'like', "%{$search}%")
+              ->orWhere('users.name', 'like', "%{$search}%")
+              ->orWhere('users.user_name', 'like', "%{$search}%")
+              ->orWhereExists(function($sub) use ($search){
+                  $sub->select(\DB::raw(1))
+                      ->from('sales_items')
+                      ->whereColumn('sales_items.transaction_id', 'sales_transactions.id')
+                      ->where(function($q2) use ($search){
+                          $q2->where('product_name', 'like', "%{$search}%")
+                             ->orWhere('category', 'like', "%{$search}%");
+                      });
+              });
+        });
+    }
+
+    // 📅 DATE RANGE
+    if ($request->from && $request->to) {
+        $query->whereBetween('sales_transactions.created_at', [
+            $request->from . ' 00:00:00',
+            $request->to . ' 23:59:59'
+        ]);
+    }
+
+    $settings = Setting::first();
+
+    $total = $query->count();
+
+    $data = $query
+        ->orderBy('sales_transactions.id', 'desc')
+        ->offset($request->start)
+        ->limit($request->length)
+        ->get();
+
+    foreach ($data as $row) {
+        $row->created_at = Carbon::parse($row->created_at)
+            ->timezone($settings->timezone ?? 'Africa/Lagos')
+            ->format('d M Y h:i A');
+    }
+
+// 🔥 CLONE QUERY FOR TOTAL (VERY IMPORTANT)
+$totalSales = (clone $query)->sum('sales_transactions.total_amount');
+
+return response()->json([
+    "draw" => intval($request->draw),
+    "recordsTotal" => $total,
+    "recordsFiltered" => $total,
+    "data" => $data,
+    "totalSales" => $totalSales // ✅ NEW
+]);
+
+}
+
+
+
+//ADMIN SALES ITEM (SALES REPORT)
+public function adminSalesItemsPage($id)
+{
+    $transaction = SalesTransaction::findOrFail($id);
+
+    return view('backend.admin_backend.admin_sales_report.admin_sales_items', compact('transaction'));
+}
+
+
+public function adminSalesItems(Request $request, $id)
+{
+    $query = SalesItem::where('transaction_id', $id);
+
+    // 🔍 SEARCH
+    if ($request->search) {
+        $search = $request->search;
+
+        $query->where(function($q) use ($search){
+            $q->where('product_name', 'LIKE', "%{$search}%")
+              ->orWhere('category', 'LIKE', "%{$search}%");
+        });
+    }
+
+    // 📅 DATE FILTER
+    if ($request->from) {
+        $query->whereDate('created_at', '>=', $request->from);
+    }
+
+    if ($request->to) {
+        $query->whereDate('created_at', '<=', $request->to);
+    }
+
+    $items = $query->orderBy('id', 'desc')->get();
+
+    $totalAmount = $items->sum('subtotal');
+
+    return response()->json([
+        'data' => $items,
+        'total_amount' => $totalAmount,
+    ]);
+}
+
+
+//ADMIN SALES RECEIPT PRINT
+public function adminReceipt($id)
+{
+    $transaction = SalesTransaction::findOrFail($id);
+
+    $items = SalesItem::where('transaction_id', $id)->get();
+
+    $settings = Setting::first();
+
+    $cashier = User::find($transaction->cashier_id);
+
+    return view('backend.admin_backend.admin_sales_report.admin_receipt', compact(
+        'transaction',
+        'items',
+        'settings',
+        'cashier'
+    ));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//PROFIT ANALYSIS
+
+public function adminSalesReport(Request $request)
+{
+    $query = \DB::table('sales_items')
+        ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
+        ->join('users', 'sales_transactions.cashier_id', '=', 'users.id') // salesperson
+
+        ->select(
+            'users.name as salesperson',
+            'sales_items.product_name',
+            'sales_items.category',
+
+            \DB::raw('SUM(sales_items.quantity) as total_qty'),
+            \DB::raw('SUM(sales_items.subtotal) as total_sales'),
+
+            \DB::raw('AVG(sales_items.cost_price) as cost_price'),
+            \DB::raw('AVG(sales_items.price) as selling_price'),
+
+            \DB::raw('SUM(sales_items.quantity * sales_items.cost_price) as total_cost')
+        )
+
+        ->groupBy(
+            'users.name',
+            'sales_items.product_name',
+            'sales_items.category'
+        );
+
+    // 🔍 SEARCH (salesperson / product / category)
+    if ($request->search) {
+        $search = $request->search;
+
+        $query->where(function($q) use ($search){
+            $q->where('users.name', 'LIKE', "%{$search}%")
+              ->orWhere('sales_items.product_name', 'LIKE', "%{$search}%")
+              ->orWhere('sales_items.category', 'LIKE', "%{$search}%");
+        });
+    }
+
+    // 📅 DATE FILTER
+    if ($request->from && $request->to) {
+        $query->whereBetween('sales_transactions.created_at', [
+            $request->from . ' 00:00:00',
+            $request->to . ' 23:59:59'
+        ]);
+    }
+
+    $data = $query->orderByDesc('total_sales')->get();
+
+    // 🔥 CALCULATE PROFIT PER ROW
+    $data->transform(function ($row) {
+        $row->profit = $row->total_sales - $row->total_cost;
+        return $row;
+    });
+
+    // 🔥 TOTALS
+    $totalSales = $data->sum('total_sales');
+    $totalCost  = $data->sum('total_cost');
+    $totalProfit = $totalSales - $totalCost;
+
+    return response()->json([
+        'data' => $data,
+        'total_sales' => $totalSales,
+        'total_cost' => $totalCost,
+        'total_profit' => $totalProfit
+    ]);
+}
+
+
+//ADMIN SALES TRANSACTIONS PAGE
+public function adminSalesTransactions()
+{
+    return view('backend.admin_backend.admin_transactions');
+}
+
+
+//ADMIN SALES TRANSACTIONS DATA (WITH PAGINATION)
+public function adminSalesTransactionsData(Request $request)
+{
+    try {
+        // First get the base query for transactions
+        $transactionQuery = \DB::table('sales_transactions')
+            ->join('users', 'sales_transactions.cashier_id', '=', 'users.id')
+            ->select(
+                'sales_transactions.id',
+                'sales_transactions.receipt_no',
+                'sales_transactions.total_amount',
+                'sales_transactions.payment_method',
+                'sales_transactions.created_at',
+                'users.name as salesperson_name',
+                'users.user_name as salesperson_username'
+            );
+
+        // 🔍 SEARCH (product/category/salesperson name/username)
+        if ($request->search_value) {
+            $search = $request->search_value;
+
+            $transactionQuery->where(function($q) use ($search){
+                $q->where('users.name', 'LIKE', "%{$search}%")
+                  ->orWhere('users.user_name', 'LIKE', "%{$search}%")
+                  ->orWhere('sales_transactions.receipt_no', 'LIKE', "%{$search}%")
+                  ->orWhere('sales_transactions.payment_method', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // 📅 DATE FILTER (FROM - TO)
+        if ($request->from && $request->to) {
+            $transactionQuery->whereBetween('sales_transactions.created_at', [
+                $request->from . ' 00:00:00',
+                $request->to . ' 23:59:59'
+            ]);
+        }
+
+        $settings = Setting::first();
+
+        // TOTAL COUNT
+        $total = $transactionQuery->count();
+
+        // GET ALL TRANSACTIONS (for profit calculation)
+        $allTransactions = $transactionQuery->clone()->get();
+        
+        // Calculate profit for each transaction
+        $transactionIds = $allTransactions->pluck('id')->toArray();
+        
+        $profitData = [];
+        $costData = [];
+        
+        if (!empty($transactionIds)) {
+            $profitData = \DB::table('sales_items')
+                ->whereIn('transaction_id', $transactionIds)
+                ->select(
+                    'transaction_id',
+                    \DB::raw('SUM(subtotal) as total_sales'),
+                    \DB::raw('SUM(COALESCE(cost_price, 0) * quantity) as total_cost')
+                )
+                ->groupBy('transaction_id')
+                ->pluck('total_sales', 'transaction_id')
+                ->toArray();
+            
+            $costData = \DB::table('sales_items')
+                ->whereIn('transaction_id', $transactionIds)
+                ->select(
+                    'transaction_id',
+                    \DB::raw('SUM(COALESCE(cost_price, 0) * quantity) as total_cost')
+                )
+                ->groupBy('transaction_id')
+                ->pluck('total_cost', 'transaction_id')
+                ->toArray();
+        }
+
+        // Add profit to each transaction
+        $totalProfit = 0;
+        foreach ($allTransactions as $row) {
+            $sales = isset($profitData[$row->id]) ? $profitData[$row->id] : $row->total_amount;
+            $cost = isset($costData[$row->id]) ? $costData[$row->id] : 0;
+            $row->profit = $sales - $cost;
+            $totalProfit += $row->profit;
+        }
+
+        // PAGINATION
+        $data = $transactionQuery
+            ->orderBy('sales_transactions.id', 'desc')
+            ->offset($request->start ?? 0)
+            ->limit($request->length ?? 10)
+            ->get();
+
+        // Add profit to paginated data
+        foreach ($data as $row) {
+            $sales = isset($profitData[$row->id]) ? $profitData[$row->id] : $row->total_amount;
+            $cost = isset($costData[$row->id]) ? $costData[$row->id] : 0;
+            $row->profit = $sales - $cost;
+            
+            // FORMAT DATE
+            $row->created_at = Carbon::parse($row->created_at)
+                ->timezone($settings->timezone ?? 'Africa/Lagos')
+                ->format('d M Y h:i A');
+        }
+
+        return response()->json([
+            "draw" => intval($request->draw ?? 1),
+            "recordsTotal" => $total,
+            "recordsFiltered" => $total,
+            "data" => $data,
+            "total_profit" => $totalProfit
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            "error" => $e->getMessage(),
+            "draw" => intval($request->draw ?? 1),
+            "recordsTotal" => 0,
+            "recordsFiltered" => 0,
+            "data" => [],
+            "total_profit" => 0
+        ], 500);
+    }
+}
+
+
+//ADMIN VIEW SALES ITEMS PAGE
+/*public function adminSalesItemsPage($id)
+{
+    $transaction = SalesTransaction::findOrFail($id);
+    
+    return view('backend.admin_backend.admin_sales_item', compact('transaction'));
+}
+
+
+//ADMIN SALES ITEMS DATA
+public function adminSalesItems(Request $request, $id)
+{
+    $query = SalesItem::where('transaction_id', $id);
+
+    // 🔍 SEARCH
+    if ($request->search) {
+        $search = $request->search;
+
+        $query->where(function($q) use ($search){
+            $q->where('product_name', 'LIKE', "%{$search}%")
+              ->orWhere('category', 'LIKE', "%{$search}%");
+        });
+    }
+
+    // 📅 DATE FILTER
+    if ($request->from) {
+        $query->whereDate('created_at', '>=', $request->from);
+    }
+
+    if ($request->to) {
+        $query->whereDate('created_at', '<=', $request->to);
+    }
+
+    // 🔥 GET ALL (NO PAGINATION)
+    $items = $query->orderBy('id', 'desc')->get();
+
+    // TOTAL (FILTERED)
+    $totalAmount = $items->sum('subtotal');
+    
+    // CALCULATE PROFIT (subtotal - cost_price * quantity)
+    $totalCost = $items->sum(function($item) {
+        return ($item->cost_price ?? 0) * $item->quantity;
+    });
+    $totalProfit = $totalAmount - $totalCost;
+
+    return response()->json([
+        'data' => $items,
+        'total_amount' => $totalAmount,
+        'total_profit' => $totalProfit
+    ]);
+}
+
+
+//ADMIN ITEM SUGGESTIONS
+public function adminItemSuggestions(Request $request, $id)
+{
+    $query = $request->q;
+
+    return SalesItem::where('transaction_id', $id)
+        ->where(function ($q) use ($query) {
+            $q->where('product_name', 'LIKE', "%{$query}%")
+              ->orWhere('category', 'LIKE', "%{$query}%");
+        })
+        ->limit(10)
+        ->pluck('product_name');
+}
+*/
 }

@@ -123,7 +123,7 @@ public function stockHistory(Request $request, $product, $category){
     }
 
     $records = $query->latest()
-        ->paginate(5)
+        ->paginate(10)
         ->withQueryString();
 
     $total = NewStockArrival::where('product_name', $product)

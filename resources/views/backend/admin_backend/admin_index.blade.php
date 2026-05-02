@@ -325,6 +325,7 @@ fetch("{{ route('admin.top.products.chart') }}")
         data:{
             labels:data.map(i=>i.product_label),
             datasets:[{
+                label:"Qty Sold",
                 data:data.map(i=>i.total_qty)
             }]
         }
@@ -350,7 +351,7 @@ $(document).ready(function(){
         loadPayment();
         loadDaily();
         loadTop();
-    }, 15000); // 15 seconds (safe + smooth)
+    }, 5000); // 15 seconds (safe + smooth)
 
 });
 

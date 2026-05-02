@@ -59,7 +59,7 @@ $salesPerson = App\Models\User::findOrFail(Auth::user()->id);
                     <span>Manage Sales</span>
                 </a>
                 <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="{{route('sales.person.history')}}">Manage sales</a></li>
+                    <li><a href="{{route('sales.person.history')}}">Sales History</a></li>
                    
                    
                 </ul>

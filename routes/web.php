@@ -57,6 +57,7 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/sales/daily-chart', 'dailySalesChart')->name('sales.daily.chart');
     Route::get('/sales/top-products-chart', 'topProductsChart')->name('sales.top.products.chart');
 
+
 });
 
     Route::controller(SalesPersonPOSController::class)->group(function(){
@@ -146,7 +147,25 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/payment-chart', 'paymentChartData')->name('admin.payment.chart');
     Route::get('/daily-chart', 'dailySalesChart')->name('admin.daily.chart');
     Route::get('/top-products', 'topProductsChart')->name('admin.top.products.chart');
-});
+
+    
+
+    ////SALES REPORT
+
+    //ADMIN SALES HISTORY
+    Route::get('/admin/sales-history', 'adminSalesHistory')->name('admin.sales.history');
+    Route::get('/admin/sales-history-data', 'adminSalesHistoryData')->name('admin.sales.history.data');
+
+
+
+     // ADMIN SALES ITEMS (SALES REPORT)
+     Route::get('/admin/sales-items-page/{id}', 'adminSalesItemsPage')->name('admin.sales.items.page');
+     Route::get('/admin/sales-items/{id}', 'adminSalesItems')->name('admin.sales.items');
+
+     // ADMIN RECEIPT (PREVIEW)
+     Route::get('/admin/receipt/{id}', 'adminReceipt')->name('admin.receipt');
+
+    });  
 
 
 
