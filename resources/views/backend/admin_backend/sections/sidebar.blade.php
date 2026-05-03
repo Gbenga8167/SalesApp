@@ -92,7 +92,20 @@ $adminData = App\Models\User::findOrFail(Auth::user()->id);
                     <li><a href="{{route('admin.sales.history')}}">Sales Report</a></li>
                 </ul>
             </li>
+            
+            
+                        <!-- PROFIT REPORT -->
+            <li>
+                <a href="javascript: void(0);" class="has-arrow waves-effect">
+                    <i class="ri-bar-chart-2-line"></i>
+                    <span>Profit Report</span>
+                </a>
+                <ul class="sub-menu">
+                    <li><a href="{{route('admin.profit.report')}}">Profit Report</a></li>
+                </ul>
+            </li>
 
+            
             <!-- SETTINGS -->
             <li>
                 <a href="javascript: void(0);" class="has-arrow waves-effect">

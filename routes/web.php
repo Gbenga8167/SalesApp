@@ -148,7 +148,7 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/daily-chart', 'dailySalesChart')->name('admin.daily.chart');
     Route::get('/top-products', 'topProductsChart')->name('admin.top.products.chart');
 
-    
+
 
     ////SALES REPORT
 
@@ -165,6 +165,12 @@ Route::get('/sales-person/dashboard', function () {
      // ADMIN RECEIPT (PREVIEW)
      Route::get('/admin/receipt/{id}', 'adminReceipt')->name('admin.receipt');
 
+
+     //ADMIN PROFIT REPORT 
+     // PROFIT REPORT
+    Route::get('/admin/profit-report', 'adminProfitReport')->name('admin.profit.report');
+    Route::get('/admin/profit-report-data', 'adminProfitReportData')->name('admin.profit.report.data');
+    
     });  
 
 

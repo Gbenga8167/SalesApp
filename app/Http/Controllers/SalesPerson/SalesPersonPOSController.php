@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SalesPerson;
 
 use App\Http\Controllers\Controller;
+use App\Models\NewStockArrival;
 use App\Models\Sale;
 use App\Models\SalesItem;
 use App\Models\SalesTransaction;
@@ -34,6 +35,7 @@ class SalesPersonPOSController extends Controller
         'product_id' => 'required',
         'name' => 'required',
         'price' => 'required|numeric',
+        'cost_price' => 'nullable|numeric',
         'quantity' => 'required|integer|min:1',
     ]);
 
@@ -99,6 +101,7 @@ class SalesPersonPOSController extends Controller
             'name'       => $request->name,
             'category'   => $request->category,
             'price'      => $request->price,
+            'cost_price' => $request->cost_price,
             'quantity'   => $request->quantity,
         ];
     }
@@ -239,6 +242,16 @@ public function getProductDetails(Request $request)
         return response()->json(null);
     }
 
+
+        // 🔥 GET LATEST COST PRICE FROM STOCK ARRIVAL TABLE
+    $stock = NewStockArrival::where('product_name', $productName)
+        ->where('category', $category)
+        ->orderBy('id', 'desc')
+        ->first();
+
+    $costPrice = $stock ? $stock->cost_price : 0;
+
+    
     // =========================
     // 🔥 TOTAL STOCK (IN)
     // =========================
@@ -286,7 +299,15 @@ public function getProductDetails(Request $request)
     $product->available_stock = $availableStock;
     
 
-    return response()->json($product);
+    return response()->json([
+    'id' => $product->id,
+    'product_name' => $product->product_name,
+    'category' => $product->category,
+    'selling_price' => $product->selling_price,
+    'cost_price' => $costPrice,
+    'available_stock' => $product->available_stock,
+]);
+
 }
 
 
@@ -458,6 +479,7 @@ public function confirmSale(Request $request)
                 'quantity'       => $item['quantity'],
                 'price'          => $item['price'],
                 'subtotal'       => $item['subtotal'],
+                'cost_price'     => $item['cost_price'] ?? 0,
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ]);

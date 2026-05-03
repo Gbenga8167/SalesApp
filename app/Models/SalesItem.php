@@ -12,6 +12,7 @@ class SalesItem extends Model
         'category',
         'quantity',
         'price',
+        'cost_price',
         'subtotal',
     ];
 

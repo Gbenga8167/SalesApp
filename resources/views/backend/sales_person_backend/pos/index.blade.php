@@ -267,7 +267,8 @@ $(document).on('change', 'input[name="category"]', function () {
                         data-name="${product.product_name}"
                         data-price="${product.selling_price}"
                         data-category="${product.category}"
-                        data-stock="${product.available_stock}">
+                        data-stock="${product.available_stock}"
+                        data-cost="${product.cost_price ?? 0}">
                         Add To Cart
                 </button>
 
@@ -313,6 +314,7 @@ $(document).on('click', '.addToCart', function () {
         name: $(this).data('name'),
         category: $(this).data('category'),
         price: $(this).data('price'),
+        cost_price: $(this).data('cost') || 0,
         quantity: qty
     }, function (res) {
 
