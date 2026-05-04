@@ -134,12 +134,19 @@
         <canvas id="topProductsChart"></canvas>
     </div>
 
+    <div class="card mb-3">
+    <div class="p-3 bg-success text-white chart-header">
+        Profit Chart
+    </div>
+
+    <div class="p-3">
+        <canvas id="profitChart" height="200"></canvas>
+    </div>
+</div>
 </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
 
@@ -333,6 +340,39 @@ fetch("{{ route('admin.top.products.chart') }}")
 
 });
 }
+
+
+
+
+/* =========================
+   PROFIT CHART
+========================= */
+function loadDashboardChart(){
+
+    $.get("{{ route('admin.chart.7days') }}", function(res){
+
+        let ctx = document.getElementById('profitChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: res.labels,
+                datasets: [{
+                    label: 'Last 7 Days Profit',
+                    data: res.profits,
+                    
+                }]
+            }
+        });
+
+    });
+}
+
+loadDashboardChart();
+
+
+
+
 
 /* =========================
    INIT LIVE SYSTEM

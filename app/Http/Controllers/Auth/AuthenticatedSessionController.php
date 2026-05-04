@@ -35,13 +35,13 @@ class AuthenticatedSessionController extends Controller
 
      // Admin LOgin Role
      if( $LoginUserRole == 1 ){
-        return redirect()->intended(route('admin.dashboard', absolute: false));
+        return redirect()->route('admin.dashboard');
         
      }
 
           // sales_person_backend LOgin Role
      if($LoginUserRole == 2){
-        return redirect()->intended(route('sales_person.dashboard', absolute: false));
+        return redirect()->route('sales_person.dashboard');
      }
 
 

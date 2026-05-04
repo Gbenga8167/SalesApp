@@ -6,23 +6,37 @@
 
 <div class="card">
 
-    <div class="p-3 bg-dark text-white">
+    <div class="p-3 bg-dark text-white" style="font-size:25px">
         Profit Report
     </div>
+<div class="p-3">
 
-    <div class="p-3">
- 
-        <input type="text" id="search" class="form-control mb-2" placeholder="Search...">
+<!-- 🔍 SEARCH -->
+<div class="mb-2">
+    <b>Search (Salesperson / Product / Category)</b>
+    <input type="text" id="search" class="form-control" placeholder="Search...">
+</div>
 
-        <div class="d-flex gap-2 mb-3">
-            <input type="date" id="from" class="form-control">
-            <input type="date" id="to" class="form-control">
-        </div>
+<!-- 📅 DATE FILTER -->
+<div class="d-flex gap-2 mb-3">
 
-        <h5>Total Sales: ₦<span id="totalSales">0</span></h5>
-        <h5>Total Cost: ₦<span id="totalCost">0</span></h5>
-        <h3 style="color:green;">Profit: ₦<span id="totalProfit">0</span></h3>
+    <div style="flex:1;">
+        <b>From</b>
+        <input type="date" id="from" class="form-control">
+    </div>
 
+    <div style="flex:1;">
+        <b>To</b>
+        <input type="date" id="to" class="form-control">
+    </div>
+
+</div>
+    <h5>Total Sales: ₦<span id="totalSales">0</span></h5>
+    <h5 style="color:red;">Total Cost: ₦<span id="totalCost">0</span></h5>
+    <h3 style="color:green;">Profit: ₦<span id="totalProfit">0</span></h3>
+
+    <!-- ✅ ADD THIS WRAPPER -->
+    <div class="table-responsive">
         <table class="table table-bordered" id="profitTable">
             <thead>
                 <tr>
@@ -38,10 +52,23 @@
                 </tr>
             </thead>
         </table>
-
     </div>
 
 </div>
+
+</div>
+
+
+<div class="card mb-3">
+    <div class="p-3 bg-success text-white" style="font-size:25px;">
+        Profit Chart
+    </div>
+
+    <div class="p-3">
+        <canvas id="profitChart" height="100"></canvas>
+    </div>
+</div>
+
 
 </div>
 
@@ -58,6 +85,8 @@ $(document).ready(function(){
 let table = $('#profitTable').DataTable({
     processing: true,
     serverSide: true,
+    //responsive: true,
+    //autoWidth: false,
 
     ajax: {
         url: "{{ route('admin.profit.report.data') }}",
@@ -123,6 +152,61 @@ $('#from, #to').change(function(){
 });
 
 });
+
+
+
+
+/* =========================
+   PROFIT CHART
+========================= */
+let chart;
+
+// LOAD CHART
+function loadChart(){
+
+    let search = $('#search').val();
+    let from = $('#from').val();
+    let to = $('#to').val();
+
+    $.get("{{ route('admin.profit.chart.data') }}", {
+        search: search,
+        from: from,
+        to: to
+    }, function(res){
+
+        if(chart){
+            chart.destroy();
+        }
+
+        let ctx = document.getElementById('profitChart').getContext('2d');
+
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: res.labels,
+                datasets: [{
+                    label: 'Profit (₦)',
+                    data: res.profits,
+                   
+                }]
+            }
+        });
+
+    });
+}
+
+// 🔥 TRIGGERS
+$('#search').keyup(function(){
+    loadChart();
+});
+
+$('#from, #to').change(function(){
+    loadChart();
+});
+
+// INITIAL LOAD
+loadChart();
+
 </script>
 
 @endsection

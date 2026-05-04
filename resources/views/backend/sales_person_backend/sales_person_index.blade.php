@@ -173,30 +173,31 @@
 </div>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script>
 
-function formatMoney(value){
-    return parseFloat(value || 0).toLocaleString();
+// ✅ GLOBAL CURRENCY FORMATTER
+function formatNaira(amount) {
+    return '₦' + parseFloat(amount || 0).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
-
-    // ======================
-    // DAILY TREND
-    // ======================
+// ======================
+// DAILY TREND
+// ======================
 $(document).ready(function(){
 
 $.get("{{ route('sales.dashboard.data') }}", function(res){
 
-    $('#todaySales').text("₦" + formatMoney(res.todaySales));
+    // ✅ CARDS
+    $('#todaySales').text(formatNaira(res.todaySales));
     $('#totalTransactions').text(res.totalTransactions);
     $('#itemsSold').text(res.itemsSold);
 
     if(!res.salesChart || res.salesChart.length === 0) return;
 
+    // ✅ TODAY SALES CHART
     new Chart(document.getElementById('salesChart'), {
         type: 'line',
         data: {
@@ -214,14 +215,8 @@ $.get("{{ route('sales.dashboard.data') }}", function(res){
             plugins:{
                 tooltip:{
                     callbacks: {
-
                         label: function(context) {
-                            let value = context.raw || 0;
-
-                            return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                            return "Sales: " + formatNaira(context.raw);
                         }
                     }
                 }
@@ -231,10 +226,7 @@ $.get("{{ route('sales.dashboard.data') }}", function(res){
                     beginAtZero:true,
                     ticks: {
                         callback: function(value) {
-                            return "₦" + Number(value).toLocaleString('en-NG', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                            return formatNaira(value);
                         }
                     }
                 }
@@ -243,33 +235,33 @@ $.get("{{ route('sales.dashboard.data') }}", function(res){
     });
 
 });
-    
 
-    // ======================
-    // PAYMENT (TODAY)
-    // ======================
-    fetch("{{ route('sales.payment.chart') }}")
-    .then(r=>r.json())
-    .then(data=>{
 
-        if(!data.length) return;
+// ======================
+// PAYMENT (TODAY)
+// ======================
+fetch("{{ route('sales.payment.chart') }}")
+.then(r=>r.json())
+.then(data=>{
 
-        new Chart(document.getElementById('paymentChart'), {
-            type:'pie',
-            data:{
-                labels:data.map(i=>i.payment_method),
-                datasets:[{
-                    data:data.map(i=>i.total)
-                }]
-            }
-        });
+    if(!data.length) return;
 
+    new Chart(document.getElementById('paymentChart'), {
+        type:'pie',
+        data:{
+            labels:data.map(i=>i.payment_method),
+            datasets:[{
+                data:data.map(i=>i.total)
+            }]
+        }
     });
 
+});
 
-    // ======================
-    // DAILY SALES (🔥 FIXED)
-    // ======================
+
+// ======================
+// LAST 7 DAYS SALES
+// ======================
 fetch("{{ route('sales.daily.chart') }}")
 .then(r => r.json())
 .then(data => {
@@ -299,12 +291,7 @@ fetch("{{ route('sales.daily.chart') }}")
                         },
 
                         label: function(context) {
-                            let value = context.raw || 0;
-
-                            return "Total Sales: ₦" + Number(value).toLocaleString('en-NG', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                            return "Total Sales: " + formatNaira(context.raw);
                         }
                     }
                 }
@@ -314,10 +301,7 @@ fetch("{{ route('sales.daily.chart') }}")
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return "₦" + Number(value).toLocaleString('en-NG', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                            return formatNaira(value);
                         }
                     }
                 }
@@ -330,41 +314,39 @@ fetch("{{ route('sales.daily.chart') }}")
 });
 
 
+// ======================
+// TOP PRODUCTS (TODAY)
+// ======================
+fetch("{{ route('sales.top.products.chart') }}")
+.then(r=>r.json())
+.then(data=>{
 
-    // ======================
-    // TOP PRODUCTS (TODAY)
-    // ======================
-    fetch("{{ route('sales.top.products.chart') }}")
-    .then(r=>r.json())
-    .then(data=>{
+    if(!data.length) return;
 
-        if(!data.length) return;
-
-        new Chart(document.getElementById('topProductsChart'), {
-            type:'bar',
-            data:{
-                labels:data.map(i=>i.product_label),
-                datasets:[{
-                    label:"Qty Sold",
-                    data:data.map(i=>i.total_qty)
-                }]
-            },
-            options:{
-                plugins:{
-                    tooltip:{
-                        callbacks:{
-                            label: ctx => "Sold: " + ctx.raw
-                        }
+    new Chart(document.getElementById('topProductsChart'), {
+        type:'bar',
+        data:{
+            labels:data.map(i=>i.product_label),
+            datasets:[{
+                label:"Qty Sold",
+                data:data.map(i=>i.total_qty)
+            }]
+        },
+        options:{
+            plugins:{
+                tooltip:{
+                    callbacks:{
+                        label: ctx => "Sold: " + ctx.raw
                     }
-                },
-                scales:{
-                    y:{ beginAtZero:true }
                 }
+            },
+            scales:{
+                y:{ beginAtZero:true }
             }
-        });
-
+        }
     });
 
+});
 
 </script>
 

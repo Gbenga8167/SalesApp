@@ -493,4 +493,156 @@ public function adminProfitReportData(Request $request)
         "totalProfit" => $totalProfit
     ]);
 }
+
+
+
+ //ADMIN PROFIT DATA CHART
+public function profitChartData(Request $request)
+{
+    $query = \DB::table('sales_items')
+        ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
+        ->join('users', 'sales_transactions.cashier_id', '=', 'users.id');
+
+    // 🔍 SEARCH (same as table)
+    if ($request->search) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('sales_items.product_name', 'like', "%{$search}%")
+              ->orWhere('sales_items.category', 'like', "%{$search}%")
+              ->orWhere('users.name', 'like', "%{$search}%")
+              ->orWhere('users.user_name', 'like', "%{$search}%");
+        });
+    }
+
+    // 📅 DATE FILTER
+    if (!empty($request->from) && !empty($request->to)) {
+        $query->whereBetween('sales_transactions.created_at', [
+            $request->from . ' 00:00:00',
+            $request->to . ' 23:59:59'
+        ]);
+    }
+
+    // 🔥 GROUP BY DATE
+    $data = $query
+        ->selectRaw("
+            DATE(sales_transactions.created_at) as date,
+            SUM(subtotal) as total_sales,
+            SUM(cost_price * quantity) as total_cost
+        ")
+        ->groupBy('date')
+        ->orderBy('date', 'asc')
+        ->get();
+
+    $labels = [];
+    $profits = [];
+
+    foreach ($data as $row) {
+        $profit = $row->total_sales - $row->total_cost;
+
+        $labels[] = Carbon::parse($row->date)->format('d M');
+        $profits[] = $profit;
+    }
+
+    return response()->json([
+        'labels' => $labels,
+        'profits' => $profits
+    ]);
+}
+
+
+
+//ADMIN LAST 7-DAYS CHART
+public function profitChartLast7Days()
+{
+    $data = \DB::table('sales_items')
+        ->join('sales_transactions', 'sales_items.transaction_id', '=', 'sales_transactions.id')
+        ->whereBetween('sales_transactions.created_at', [
+            now()->subDays(6)->startOfDay(),
+            now()->endOfDay()
+        ])
+        ->selectRaw("
+            DATE(sales_transactions.created_at) as date,
+            SUM(subtotal) as total_sales,
+            SUM(cost_price * quantity) as total_cost
+        ")
+        ->groupBy('date')
+        ->orderBy('date', 'asc')
+        ->get();
+
+    $labels = [];
+    $profits = [];
+
+    foreach ($data as $row) {
+        $profit = $row->total_sales - $row->total_cost;
+
+        $labels[] = \Carbon\Carbon::parse($row->date)->format('d M');
+        $profits[] = $profit;
+    }
+
+    return response()->json([
+        'labels' => $labels,
+        'profits' => $profits
+    ]);
+}
+
+
+
+
+//aDMIN LEADERBOARD
+public function leaderboardData(Request $request)
+{
+    $query = \DB::table('sales_transactions')
+        ->join('users', 'sales_transactions.cashier_id', '=', 'users.id')
+        ->select(
+            'users.name',
+            'users.user_name',
+            \DB::raw('SUM(sales_transactions.total_amount) as total_sales'),
+            \DB::raw('COUNT(sales_transactions.id) as total_transactions'),
+            \DB::raw('MAX(sales_transactions.created_at) as last_sale')
+        )
+        ->groupBy('users.id', 'users.name', 'users.user_name');
+
+    // 🔍 SEARCH
+    if ($request->search['value'] ?? null) {
+        $search = $request->search['value'];
+
+        $query->where(function ($q) use ($search) {
+            $q->where('users.name', 'like', "%{$search}%")
+              ->orWhere('users.user_name', 'like', "%{$search}%");
+        });
+    }
+
+    // 📅 DATE FILTER
+    if (!empty($request->from) && !empty($request->to)) {
+        $query->whereBetween('sales_transactions.created_at', [
+            $request->from . ' 00:00:00',
+            $request->to . ' 23:59:59'
+        ]);
+    }
+
+    $data = $query
+        ->orderByDesc('total_sales')
+        ->get();
+
+    // 🏆 ADD RANKING + FORMAT
+    $rank = 1;
+
+    foreach ($data as $row) {
+
+        $row->rank = $rank++;
+
+        $row->total_sales = number_format($row->total_sales, 2);
+        $row->total_transactions = number_format($row->total_transactions);
+
+        $row->last_sale = \Carbon\Carbon::parse($row->last_sale)
+            ->timezone(optional(\App\Models\Setting::first())->timezone ?? 'Africa/Lagos')
+            ->format('d M Y h:i A');
+    }
+
+    return response()->json([
+        "data" => $data
+    ]);
+}
+
 }

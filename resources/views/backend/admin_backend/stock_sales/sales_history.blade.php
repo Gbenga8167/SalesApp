@@ -41,7 +41,7 @@ table{
 thead th{
     position: sticky;
     top: 0;
-    background:#198754;
+    background: #198754;
     color:#fff;
     z-index:10;
     padding:12px;

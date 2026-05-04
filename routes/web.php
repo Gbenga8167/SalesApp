@@ -41,7 +41,7 @@ Route::get('/', function () {
 //SALES PERSON DASHBOARD ROUTE
 Route::get('/sales-person/dashboard', function () {
     return view('backend.sales_person_backend.sales_person_index');
-})->middleware(['auth', 'verified', 'sales.person'])->name('sales_person.dashboard');
+})->middleware(['auth', 'sales.person'])->name('sales_person.dashboard');
 
 
     //Sales Person All Route  
@@ -127,7 +127,7 @@ Route::get('/sales-person/dashboard', function () {
     //Admin Dashbord Login Route
     Route::get('/admin/dashboard', function () {
     return view('backend.admin_backend.admin_index');
-})->middleware(['auth', 'verified', 'admin'])->name('admin.dashboard');
+})->middleware(['auth', 'admin'])->name('admin.dashboard');
 
 
  //Admin All Route
@@ -171,6 +171,18 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/admin/profit-report', 'adminProfitReport')->name('admin.profit.report');
     Route::get('/admin/profit-report-data', 'adminProfitReportData')->name('admin.profit.report.data');
     
+
+    //ADMIN PROFIT DATA CHART
+    Route::get('/admin/profit-chart-data', 'profitChartData')->name('admin.profit.chart.data'); 
+    Route::get('/admin-chart-7days', 'profitChartLast7Days')->name('admin.chart.7days');
+
+
+    //ADMIN LEADERBOARD
+    Route::get('/admin/leaderboard', function () {
+    return view('backend.admin_backend.admin_sales_report.leaderboard');
+    })->name('admin.leaderboard');
+    
+    Route::get('/admin/leaderboard/data', 'leaderboardData')->name('admin.leaderboard.data');
     });  
 
 

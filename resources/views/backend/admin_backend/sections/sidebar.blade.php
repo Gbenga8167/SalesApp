@@ -106,6 +106,14 @@ $adminData = App\Models\User::findOrFail(Auth::user()->id);
             </li>
 
             
+            <li>
+                 <a href="{{ route('admin.leaderboard') }}" class="waves-effect">
+                     <i class="ri-trophy-line"></i>
+                     <span>Leaderboard</span>
+                 </a>
+            </li>
+
+
             <!-- SETTINGS -->
             <li>
                 <a href="javascript: void(0);" class="has-arrow waves-effect">
