@@ -1,111 +1,187 @@
+@php
+$settings = DB::table('settings')->first();
+$company = $settings->company_name ?? 'My Company';
+@endphp
+
 <!doctype html>
 <html lang="en">
 
-    <head>
-        
-        <meta charset="utf-8" />
-        <title>Login </title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
-        <meta content="Themesdesign" name="author" />
-        <!-- App favicon -->
-        <link rel="shortcut icon" href="{{asset('BackendTem/assets/images/favicon.ico')}}">
+<head>
 
-        <!-- Bootstrap Css -->
-        
-        <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" id="bootstrap-style" rel="stylesheet" type="text/css" />
-        <!-- Icons Css -->
-        <link href="{{asset('BackendTem/assets/css/icons.min.css')}}" rel="stylesheet" type="text/css" />
-        <!-- App Css-->
-        <link href="{{asset('BackendTem/assets/css/app.min.css')}}" id="app-style" rel="stylesheet" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    </head>
+    <link rel="shortcut icon" href="{{asset('BackendTem/assets/images/favicon.ico')}}">
 
-    <body class="auth-body-bg d-flex justify-content-center align-items-center min-vh-100">
-    <div class="bg-overlay"></div>
+    <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" rel="stylesheet">
+    <link href="{{asset('BackendTem/assets/css/icons.min.css')}}" rel="stylesheet">
+    <link href="{{asset('BackendTem/assets/css/app.min.css')}}" rel="stylesheet">
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow-lg">
-                    <div class="card-body">
-                        <h1 class="text-muted text-center font-size-20">Log In</h1>
-                        <div class="p-3">
-                            <form method="POST" action="{{ route('login') }}">
-                                @csrf
+    <style>
 
-                                <div class="form-group mb-3 row">
-                                    <div class="col-12">
-                                        <input class="form-control @error('login') is-invalid @enderror" 
-                                               type="text" name="login" 
-                                               value="{{ old('login') }}" 
-                                               placeholder="Username">
-                                        @error('login')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
+        body.auth-body-bg{
+            background: linear-gradient(135deg, #0f766e, #1e3a8a);
+        }
 
-                                <div class="form-group mb-3 row">
-                                    <div class="col-12">
-                                        <input class="form-control @error('password') is-invalid @enderror" 
-                                               type="password" name="password" 
-                                               placeholder="Password">
-                                        @error('password')
-                                            <span class="text-danger">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
+        .bg-overlay{ display:none !important; }
 
-                                <div class="form-group mb-3 row">
-                                    <div class="col-12">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="customCheck1">
-                                            <label class="form-check-label" for="customCheck1">Remember me</label>
-                                        </div>
-                                    </div>
-                                </div>
+        /* 🔥 SMALLER & CLEANER FORM WIDTH */
+        .login-box{
+            max-width: 450px;
+            margin: auto;
+        }
 
-                                <div class="form-group mb-3 text-center row mt-3 pt-1">
-                                    <div class="col-12">
-                                        <button class="btn btn-info w-100 waves-effect waves-light" type="submit">Log In</button>
-                                    </div>
-                                </div>
+        .card{
+            border: none;
+            border-radius: 18px;
+        }
 
-                                <div class="form-group mb-0 row mt-2">
-                                    <div class="col-sm-7 mt-3">
-                                        <a href="auth-recoverpw.html" class="text-muted"><i class="mdi mdi-lock"></i> Forgot your password?</a>
-                                    </div>
-                                    <div class="col-sm-5 mt-3 text-end">
-                                        <a href="auth-register.html" class="text-muted"><i class="mdi mdi-account-circle"></i> Create an account</a>
-                                    </div>
-                                </div>
+        .card-body{
+            padding: 55px 45px;
+        }
 
-                            </form>
+        /* 🔥 STRONG COMPANY TITLE (BOLD + SPARKLE + GLOW) */
+        .company-title{
+            font-size: 34px;
+            font-weight: 1000;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+
+            background: linear-gradient(
+                90deg,
+                #00f5ff,
+                #7c3aed,
+                #22c55e,
+                #f97316,
+                #00f5ff
+            );
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+
+            animation: shine 3s ease-in-out infinite;
+
+            /* glow effect */
+            text-shadow: 0 0 12px rgba(0,245,255,0.25);
+        }
+
+        @keyframes shine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .login-title{
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 28px;
+        }
+
+        /* LABELS */
+        .form-label{
+            font-weight: 700;
+            font-size: 15px;
+            color: #334155;
+        }
+
+        /* INPUTS */
+        .form-control{
+            height: 52px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 10px;
+        }
+
+        .form-control:focus{
+            border-color: #0f766e;
+            box-shadow: none;
+        }
+
+        /* BUTTON */
+        .btn-info{
+            height: 52px;
+            font-weight: 800;
+            border-radius: 10px;
+            background: #0f766e;
+            border: none;
+        }
+
+        .btn-info:hover{
+            background: #115e59;
+        }
+
+    </style>
+
+</head>
+
+<body class="auth-body-bg d-flex justify-content-center align-items-center min-vh-100">
+
+<div class="container">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-7 col-lg-5">
+
+            <div class="card shadow-lg login-box">
+
+                <div class="card-body">
+
+                    <!-- 🔥 COMPANY NAME -->
+                    <div class="company-title">
+                        {{ $company }}
+                    </div>
+
+                    <div class="login-title">
+                         Welcome Back — Please Login
+                    </div>
+
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+
+                        <!-- LOGIN -->
+                        <div class="mb-3">
+                            <label class="form-label">Email / Username</label>
+                            <input class="form-control @error('login') is-invalid @enderror"
+                                   type="text"
+                                   name="login"
+                                   value="{{ old('login') }}"
+                                   placeholder="Enter email or username">
+                            @error('login')
+                                <span style="font-size:14px" class="text-danger ">{{ $message }}</span>
+                            @enderror
                         </div>
-                    </div><!-- end card-body -->
-                </div><!-- end card -->
+
+                        <!-- PASSWORD -->
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input class="form-control @error('password') is-invalid @enderror"
+                                   type="password"
+                                   name="password"
+                                   placeholder="Enter password">
+                            @error('password')
+                                <span style="font-size:14px" class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- BUTTON -->
+                        <button class="btn btn-info w-100 mt-4" type="submit">
+                            Log In
+                        </button>
+
+                    </form>
+
+                </div>
+
             </div>
+
         </div>
     </div>
 
+</div>
 
-
-        <!-- JAVASCRIPT -->
-        <script src="{{asset('BackendTem/assets/libs/jquery/jquery.min.js')}}"></script>
-        <script src="{{asset('BackendTem/assets/libs/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
-        <script src="{{asset('BackendTem/assets/libs/metismenu/metisMenu.min.js')}}"></script>
-        <script src="{{asset('BackendTem/assets/libs/simplebar/simplebar.min.js')}}"></script>
-        <script src="{{asset('BackendTem/assets/libs/node-waves/waves.min.js')}}"></script>
-
-        <script src="{{asset('BackendTem/assets/js/app.js')}}"></script>
-
-    </body>
+</body>
 </html>
-
-
-
-
-
-
-

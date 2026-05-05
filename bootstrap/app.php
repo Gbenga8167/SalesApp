@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleWare;
+use App\Http\Middleware\CheckUserStatus;
 use App\Http\Middleware\SalesPersonAccountMiddleWare;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleWare::class,
             'sales.person' => SalesPersonAccountMiddleWare::class,
+            'check.status' => CheckUserStatus::class,
             'super.admin' => SuperAdminMiddleware::class,
         ]);
     })

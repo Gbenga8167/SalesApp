@@ -41,15 +41,20 @@ Route::get('/', function () {
 //SALES PERSON DASHBOARD ROUTE
 Route::get('/sales-person/dashboard', function () {
     return view('backend.sales_person_backend.sales_person_index');
-})->middleware(['auth', 'sales.person'])->name('sales_person.dashboard');
+})->middleware(['auth', 'check.status', 'sales.person'])->name('sales_person.dashboard');
 
 
+    
     //Sales Person All Route  
-    Route::middleware(['auth', 'sales.person'])->group(function(){
+    Route::middleware(['auth', 'check.status', 'sales.person'])->group(function(){
    
     Route::controller(SalesPersonAccountController::class)->group(function(){
     Route::get('sales-person/logout','SalesPersonLogout')->name('sales.person.logout');
     Route::get('sales-person/profile','SalesPersonProfile')->name('sales.person.profile');
+
+        //SALES PERSON UPDATE(CHANGE) PASSWORD
+    Route::get('sales-person/password/change','SalesPersonPasswordChange')->name('sales.person.password.change');
+    Route::post('sales-person/password/update','SalesPersonPasswordUpdate')->name('sales.person.password.update');
 
     //SALES PERSON DASHBOARD ALL ROUTE
     Route::get('/sales/dashboard-data', 'dashboardData')->name('sales.dashboard.data');
@@ -127,11 +132,11 @@ Route::get('/sales-person/dashboard', function () {
     //Admin Dashbord Login Route
     Route::get('/admin/dashboard', function () {
     return view('backend.admin_backend.admin_index');
-})->middleware(['auth', 'admin'])->name('admin.dashboard');
+})->middleware(['auth', 'check.status', 'admin'])->name('admin.dashboard');
 
 
  //Admin All Route
-     Route::middleware(['auth', 'admin'])->group(function(){
+    Route::middleware(['auth', 'check.status', 'admin'])->group(function(){
 
     Route::controller(AdminController::class)->group(function(){
     Route::get('admin/logout','AdminLogout')->name('admin.logout');
@@ -183,6 +188,12 @@ Route::get('/sales-person/dashboard', function () {
     })->name('admin.leaderboard');
     
     Route::get('/admin/leaderboard/data', 'leaderboardData')->name('admin.leaderboard.data');
+
+    //SALES PERSON ACCOUNT MANAGER(ACTIVATE/DEACTIVATE)
+    Route::get('/admin/manage-accounts', 'manageAccounts')->name('admin.manage.accounts');
+
+    Route::post('/admin/toggle-user-status',  'toggleUserStatus')->name('admin.toggle.user.status');
+
     });  
 
 

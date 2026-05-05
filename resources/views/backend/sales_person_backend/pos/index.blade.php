@@ -529,7 +529,7 @@ $('#confirmBtn').click(function(){
 
         error: function(xhr){
             console.log(xhr.responseText);
-            alert('Something went wrong. Check console.');
+            alert('Something went wrong.');
         }
     });
 

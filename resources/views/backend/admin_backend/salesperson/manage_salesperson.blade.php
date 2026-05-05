@@ -100,10 +100,10 @@
                      <button type="submit" class="btn btn-primary waves-effect waves-light">Edit</button>
                      </a> 
                                                 
-                                                
+                   <!--                             
                      <a href="{{  route('delete.salesperson', $user->id)}}" id="delete">
                      <button type="submit"  class="btn btn-danger waves-effect waves-light">Delete</button>
-                     </a>
+                     </a>  -->
 
                 </td>
                                                

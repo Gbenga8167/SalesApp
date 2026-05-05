@@ -88,7 +88,7 @@
 
         <!-- LOGO -->
         <div class="navbar-brand-box">
-            <a href="{{ route('admin.dashboard') }}" class="logo">
+            <a href="{{ route('sales_person.dashboard') }}" class="logo">
 
                 @if(!empty($settings->logo))
                     <img src="{{ asset('uploads/settings/'.$settings->logo) }}" 
@@ -142,7 +142,7 @@
                     <i class="ri-user-line align-middle me-1"></i> Profile
                 </a>
 
-                <a class="dropdown-item" href="{{ route('admin.password.change') }}">
+                <a class="dropdown-item" href="{{ route('sales.person.password.change') }}">
                     <i class="ri-lock-line align-middle me-1"></i> Change Password
                 </a>
 

@@ -134,13 +134,13 @@
 <!-- Username -->
 <div class="form-group">
 <label>Username</label>
-<input type="text" name="user_name" value="{{ $salesperson->user_name }}" class="form-control">
+<input type="text" name="user_name" value="{{ $salesperson->user_name }}" class="form-control" readonly>
 </div>
 
 <!-- Email -->
 <div class="form-group">
 <label>Email</label>
-<input type="email" name="email" value="{{ $salesperson->email }}" class="form-control">
+<input type="email" name="email" value="{{ $salesperson->email }}" class="form-control" readonly>
 </div>
 
 <!-- Phone -->

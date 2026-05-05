@@ -26,50 +26,64 @@ $salesPerson = App\Models\User::findOrFail(Auth::user()->id);
     <!--- Sidemenu -->
     <div id="sidebar-menu">
         <!-- Left Menu Start -->
-        <ul class="metismenu list-unstyled" id="side-menu">
-            <li class="menu-title">MAIN CATEGORY</li>
+<ul class="metismenu list-unstyled" id="side-menu">
+    <li class="menu-title">MAIN CATEGORY</li>
 
+    <li>
+        <a href="{{route('sales_person.dashboard')}}" class="waves-effect">
+            <i class="ri-dashboard-line"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
+
+    <li class="menu-title">OPERATIONS</li>
+
+    <!-- MAKE SALES -->
+    <li>
+        <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class="ri-shopping-cart-2-line"></i>
+            <span>Make Sales</span>
+        </a>
+        <ul class="sub-menu" aria-expanded="false">
             <li>
-                <a href="{{route('sales_person.dashboard')}}" class="waves-effect">
-                    <i class="ri-dashboard-line"></i>
-                    <span>Dashboard</span>
+                <a href="{{route('sales.pos')}}">
+                    <i class="ri-store-2-line"></i> POS System
                 </a>
             </li>
-
-
-            <li class="menu-title">APPERANCE</li>
-
-            <li>
-                <a href="javascript: void(0);" class="has-arrow waves-effect">
-                <i class="ri-dashboard-line"></i>
-                    <span>Makes Sales</span>
-                </a>
-                <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="{{route('sales.pos')}}">Make sales</a></li>
-                   
-                   
-                </ul>
-            </li>
-
-
-            
-            <li>
-                <a href="javascript: void(0);" class="has-arrow waves-effect">
-                <i class="ri-dashboard-line"></i>
-                    <span>Manage Sales</span>
-                </a>
-                <ul class="sub-menu" aria-expanded="false">
-                    <li><a href="{{route('sales.person.history')}}">Sales History</a></li>
-                   
-                   
-                </ul>
-            </li>
-
-
-
-            
-
         </ul>
+    </li>
+
+    <!-- SALES HISTORY -->
+    <li>
+        <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class="ri-file-list-3-line"></i>
+            <span>Manage Sales</span>
+        </a>
+        <ul class="sub-menu" aria-expanded="false">
+            <li>
+                <a href="{{route('sales.person.history')}}">
+                    <i class="ri-time-line"></i> Sales History
+                </a>
+            </li>
+        </ul>
+    </li>
+
+    <!-- REPORTS (OPTIONAL FUTURE EXPANSION) 
+    <li>
+        <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class="ri-bar-chart-line"></i>
+            <span>Reports</span>
+        </a>
+        <ul class="sub-menu">
+            <li>
+                <a href="#">
+                    <i class="ri-line-chart-line"></i> Performance Report
+                </a>
+            </li>
+        </ul>
+    </li>
+-->
+</ul>
     </div>
     <!-- Sidebar -->
 </div>

@@ -45,6 +45,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+         //FOR ACTIVATING AND ACTIVATING SALES PERSON ACCOUNT
+          if (!auth()->user()->status) {
+
+              Auth::logout();
+
+              throw ValidationException::withMessages([
+                  'login' => 'Account Deactivated. Contact the admin.'
+              ]);
+          }
+
         RateLimiter::clear($this->throttleKey());
     }
 

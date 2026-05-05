@@ -53,6 +53,8 @@ protected $fillable = [
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            //FOR ACTIVATING AND ACTIVATING SALES PERSON ACCOUNT
+            'status' => 'boolean',
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class SalesPersonAccountController extends Controller
 {
@@ -34,6 +35,50 @@ class SalesPersonAccountController extends Controller
     }//end method
 
 
+
+    public function SalesPersonPasswordChange(){
+
+        return view('backend.sales_person_backend.sales_person_password_change');
+    
+    }//end method
+
+
+    public function SalesPersonPasswordUpdate(Request $request){
+
+        $request->validate([
+    
+            'old_password' => 'required',
+            'new_password' => 'required|confirmed',
+        ]);
+   
+        // check if the users old password doesnt match the password in the database
+        if(!Hash::check($request->old_password, Auth::user()->password)){
+            $notification = array(
+                'message' => 'Old Password Does Not Match!',
+                'alert-type' => 'error');
+      
+            //redirect back to same page
+        
+            return redirect()->back()->with($notification);
+        }
+
+        //updating the new password with the old one
+        User::whereId(Auth::user()->id)->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+    
+        $notification = array(
+            'message' => 'Password Updated Succesfully',
+            'alert-type' => 'success'
+        );
+    
+        //redirect back to same page
+    
+        return redirect()->back()->with($notification);
+
+
+    }// end method
+   
 
 
     //SALES PERSON DASHBOARD

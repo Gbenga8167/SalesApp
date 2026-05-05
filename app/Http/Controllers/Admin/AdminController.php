@@ -645,4 +645,34 @@ public function leaderboardData(Request $request)
     ]);
 }
 
+
+
+
+ //SALES PERSON ACCOUNT MANAGER(ACTIVATE/DEACTIVATE)
+public function manageAccounts()
+{
+    $users = User::where('role', 2)->get();
+    return view('backend.admin_backend.salesperson.manage_accounts', compact('users'));
+}
+
+
+//SALES PERSON ACCOUNT MANAGER TOGGLE USER STATUS(ACTIVATE/DEACTIVATE)
+public function toggleUserStatus(Request $request)
+{
+    $user = User::findOrFail($request->user_id);
+
+    // ❌ Prevent admin from deactivating themselves
+    if ($user->id == auth()->id()) {
+        return response()->json([
+            'error' => 'You cannot deactivate your own account.'
+        ], 403);
+    }
+
+    $user->status = !$user->status;
+    $user->save();
+
+    return response()->json([
+        'status' => $user->status
+    ]);
+}
 }

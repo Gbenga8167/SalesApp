@@ -43,6 +43,8 @@ $adminData = App\Models\User::findOrFail(Auth::user()->id);
                 <ul class="sub-menu">
                     <li><a href="{{route('create.salesperson')}}">Add Salesperson</a></li>
                     <li><a href="{{route('manage.salesperson')}}">Manage Salesperson</a></li>
+                    <li><a href="{{ route('admin.manage.accounts') }}">Manage Accounts</a></li>
+                    
                 </ul>
             </li>
 
@@ -79,13 +81,14 @@ $adminData = App\Models\User::findOrFail(Auth::user()->id);
                 <ul class="sub-menu">
                     <li><a href="{{route('create.sale')}}">Add Stock For Sale</a></li>
                     <li><a href="{{route('manage.stock')}}">Manage Stock For Sale</a></li>
+
                 </ul>
             </li>
 
             <!-- SALES REPORT -->
             <li>
                 <a href="javascript: void(0);" class="has-arrow waves-effect">
-                    <i class="ri-bar-chart-2-line"></i>
+                    <i class="ri-user-settings-line"></i>
                     <span>Sales Report</span>
                 </a>
                 <ul class="sub-menu">
