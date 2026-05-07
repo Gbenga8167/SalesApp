@@ -123,6 +123,16 @@ table.dataTable thead th {
                 <input type="date" id="to" class="form-control date-input">
             </div>
 
+            <div class="d-flex gap-2">
+    <button id="exportCSV" class="btn btn-success btn-sm">
+        Export CSV
+    </button>
+
+    <button id="exportPDF" class="btn btn-danger btn-sm">
+        Download PDF
+    </button>
+</div>
+
         </div>
 
         <!-- TABLE -->
@@ -232,6 +242,38 @@ ajax: {
 });
 
 
+
+
+
+// EXPORT CSV
+$('#exportCSV').click(function () {
+
+    let search = $('#search').val();
+    let from = $('#from').val();
+    let to = $('#to').val();
+
+    let url = "{{ route('admin.sales.history.export.csv') }}"
+        + "?search_value=" + encodeURIComponent(search)
+        + "&from=" + from
+        + "&to=" + to;
+
+    window.location.href = url;
+});
+
+// EXPORT PDF
+$('#exportPDF').click(function () {
+
+    let search = $('#search').val();
+    let from = $('#from').val();
+    let to = $('#to').val();
+
+    let url = "{{ route('admin.sales.history.export.pdf') }}"
+        + "?search_value=" + encodeURIComponent(search)
+        + "&from=" + from
+        + "&to=" + to;
+
+    window.open(url, '_blank');
+});
 </script>
 
 @endsection

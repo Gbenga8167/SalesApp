@@ -7,6 +7,7 @@ use App\Models\SalesItem;
 use App\Models\SalesTransaction;
 use App\Models\Setting;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -346,6 +347,125 @@ return response()->json([
 ]);
 
 }
+
+
+
+
+// GET FILTERED SALES FOR CSV/PDF
+private function getFilteredSales($request)
+{
+    $query = \DB::table('sales_transactions')
+        ->join('users', 'sales_transactions.cashier_id', '=', 'users.id')
+        ->select(
+            'sales_transactions.*',
+            'users.name as salesperson_name',
+            'users.user_name as username'
+        );
+
+    // 🔍 SEARCH
+    if ($request->search_value) {
+        $search = $request->search_value;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('sales_transactions.receipt_no', 'like', "%{$search}%")
+              ->orWhere('sales_transactions.payment_method', 'like', "%{$search}%")
+              ->orWhere('sales_transactions.total_amount', 'like', "%{$search}%")
+              ->orWhere('users.name', 'like', "%{$search}%")
+              ->orWhere('users.user_name', 'like', "%{$search}%")
+              ->orWhereExists(function($sub) use ($search){
+                  $sub->select(\DB::raw(1))
+                      ->from('sales_items')
+                      ->whereColumn('sales_items.transaction_id', 'sales_transactions.id')
+                      ->where(function($q2) use ($search){
+                          $q2->where('product_name', 'like', "%{$search}%")
+                             ->orWhere('category', 'like', "%{$search}%");
+                      });
+              });
+        });
+    }
+
+    // 📅 DATE FILTER
+    if ($request->from && $request->to) {
+        $query->whereBetween('sales_transactions.created_at', [
+            $request->from . ' 00:00:00',
+            $request->to . ' 23:59:59'
+        ]);
+    }
+
+    return $query->orderBy('sales_transactions.id', 'desc')->get();
+}
+
+
+
+// EXPORT SALES CSV
+public function exportSalesCSV(Request $request)
+{
+    $data = $this->getFilteredSales($request);
+
+    $filename = "sales_report.csv";
+
+    $headers = [
+        "Content-Type" => "text/csv",
+        "Content-Disposition" => "attachment; filename=$filename",
+    ];
+
+    $callback = function () use ($data) {
+
+        $file = fopen('php://output', 'w');
+
+        // HEADERS
+        fputcsv($file, [
+            'S/N',
+            'Salesperson',
+            'Receipt No',
+            'Total',
+            'Payment Method',
+            'Date'
+        ]);
+
+        $i = 1;
+
+        foreach ($data as $row) {
+
+            fputcsv($file, [
+                $i++,
+                $row->salesperson_name,
+                $row->receipt_no,
+                $row->total_amount,
+                $row->payment_method,
+                $row->created_at = Carbon::parse($row->created_at)
+            ->timezone($settings->timezone ?? 'Africa/Lagos')
+            ->format('d M Y h:i A'),
+            ]);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+ // EXPORT SALES PDF
+public function exportSalesPDF(Request $request)
+{
+    $settings = Setting::first();
+    $data = $this->getFilteredSales($request);
+
+    $total = $data->sum('total_amount');
+
+    $pdf = Pdf::loadView('backend.admin_backend.admin_sales_report.sales_pdf', [
+        'data' => $data,
+        'total' => $total,
+        'settings' => $settings,
+        'from' => $request->from,
+        'to' => $request->to,
+    ]);
+
+    return $pdf->download('sales_report.pdf');
+}
+
 
 
 

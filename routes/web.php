@@ -162,8 +162,15 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/admin/sales-history-data', 'adminSalesHistoryData')->name('admin.sales.history.data');
 
 
+    //ADMIN EXPORT SALES CSV
+    Route::get('/admin/sales-history/export/csv', 'exportSalesCSV')->name('admin.sales.history.export.csv');
 
-     // ADMIN SALES ITEMS (SALES REPORT)
+    //ADMIN EXPORT SALES PDF
+    Route::get('/admin/sales-history/export/pdf', 'exportSalesPDF')->name('admin.sales.history.export.pdf');
+
+
+
+     // ADMIN SALES ITEMS  (FOR SALES REPORT)
      Route::get('/admin/sales-items-page/{id}', 'adminSalesItemsPage')->name('admin.sales.items.page');
      Route::get('/admin/sales-items/{id}', 'adminSalesItems')->name('admin.sales.items');
 
