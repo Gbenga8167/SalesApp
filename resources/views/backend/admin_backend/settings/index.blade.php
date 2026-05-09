@@ -79,6 +79,40 @@
 <input type="text" name="address" class="form-control" value="{{ $setting->address ?? '' }}">
 </div>
 
+<!-- =========================================
+     PHONE NUMBER
+========================================= -->
+<div class="form-group">
+
+<label>Phone Number</label>
+
+<input
+    type="text"
+    name="phone_number"
+    class="form-control"
+    value="{{ $setting->phone_number ?? '' }}"
+>
+
+</div>
+
+
+
+<!-- =========================================
+     EMAIL ADDRESS
+========================================= -->
+<div class="form-group">
+
+<label>Email Address</label>
+
+<input
+    type="email"
+    name="email"
+    class="form-control"
+    value="{{ $setting->email ?? '' }}"
+>
+
+</div>
+
 
 
 <div class="form-group">

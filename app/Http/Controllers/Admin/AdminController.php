@@ -616,6 +616,307 @@ public function adminProfitReportData(Request $request)
 
 
 
+
+// ======================================================
+// REUSABLE FILTER METHOD
+// ======================================================
+// This method handles:
+// - search
+// - date filtering
+// - joins
+// We will reuse it for:
+// 1. DataTable
+// 2. CSV export
+// 3. PDF export
+// ======================================================
+
+private function getFilteredProfit(Request $request)
+{
+
+    // ==========================================
+    // START MAIN QUERY
+    // ==========================================
+    $query = \DB::table('sales_items')
+
+        // Join sales transactions table
+        ->join(
+            'sales_transactions',
+            'sales_items.transaction_id',
+            '=',
+            'sales_transactions.id'
+        )
+
+        // Join users table
+        ->join(
+            'users',
+            'sales_transactions.cashier_id',
+            '=',
+            'users.id'
+        )
+
+        // Select needed columns
+        ->select(
+            'sales_items.*',
+            'sales_transactions.created_at',
+            'users.name as salesperson_name',
+            'users.user_name'
+        );
+
+
+
+    // ==========================================
+    // SEARCH FILTER
+    // ==========================================
+    if ($request->search) {
+
+        // Store search value
+        $search = $request->search;
+
+        // Apply search conditions
+        $query->where(function ($q) use ($search) {
+
+            // Search product name
+            $q->where('sales_items.product_name', 'like', "%{$search}%")
+
+                // Search category
+                ->orWhere('sales_items.category', 'like', "%{$search}%")
+
+                // Search salesperson name
+                ->orWhere('users.name', 'like', "%{$search}%")
+
+                // Search username
+                ->orWhere('users.user_name', 'like', "%{$search}%");
+        });
+    }
+
+
+
+    // ==========================================
+    // DATE FILTER
+    // ==========================================
+    if ($request->from && $request->to) {
+
+        // Filter by transaction date
+        $query->whereBetween(
+            'sales_transactions.created_at',
+            [
+                $request->from . ' 00:00:00',
+                $request->to . ' 23:59:59'
+            ]
+        );
+    }
+
+
+
+    // ==========================================
+    // GET DATA
+    // ==========================================
+    $data = $query
+        ->orderBy('sales_items.id', 'desc')
+        ->get();
+
+
+
+    // ==========================================
+    // CALCULATE PROFIT
+    // ==========================================
+    foreach ($data as $row) {
+
+        // Calculate total cost
+        $row->total_cost =
+            $row->cost_price * $row->quantity;
+
+        // Calculate profit
+        $row->profit =
+            $row->subtotal - $row->total_cost;
+    }
+
+
+
+    // Return final data
+    return $data;
+}
+
+
+
+
+
+// ======================================================
+// EXPORT PROFIT REPORT CSV
+// ======================================================
+
+public function exportProfitCSV(Request $request)
+{
+
+    // Get filtered data
+    $data = $this->getFilteredProfit($request);
+
+
+
+    // ==========================================
+    // CSV HEADERS
+    // ==========================================
+    $headers = [
+
+        // Tell browser this is CSV
+        "Content-type" => "text/csv",
+
+        // CSV file name
+        "Content-Disposition" =>
+            "attachment; filename=profit_report.csv",
+    ];
+
+
+
+    // ==========================================
+    // CREATE CSV CALLBACK
+    // ==========================================
+    $callback = function() use ($data) {
+
+        // Open output stream
+        $file = fopen('php://output', 'w');
+
+
+
+        // ======================================
+        // CSV COLUMN HEADINGS
+        // ======================================
+        fputcsv($file, [
+
+            'S/N',
+            'Salesperson',
+            'Product',
+            'Category',
+            'Quantity',
+            'Sales Amount',
+            'Total Cost',
+            'Profit',
+            'Date'
+
+        ]);
+
+
+
+        // ======================================
+        // LOOP THROUGH DATA
+        // ======================================
+        foreach ($data as $index => $row) {
+
+            // Add row into CSV
+            fputcsv($file, [
+
+                // Serial number
+                $index + 1,
+
+                // Salesperson
+                $row->salesperson_name,
+
+                // Product
+                $row->product_name,
+
+                // Category
+                $row->category,
+
+                // Quantity
+                $row->quantity,
+
+                // Sales amount
+                number_format($row->subtotal, 2),
+
+                // Total cost
+                number_format($row->total_cost, 2),
+
+                // Profit
+                number_format($row->profit, 2),
+
+                // Date
+                 Carbon::parse($row->created_at)
+                 ->timezone($settings->timezone ?? 'Africa/Lagos')
+                 ->format('d M Y h:i A'),
+            ]);
+        }
+
+
+
+        // Close CSV stream
+        fclose($file);
+    };
+
+
+
+    // Return CSV download
+    return response()->stream($callback, 200, $headers);
+}
+
+
+
+
+
+
+
+// ======================================================
+// EXPORT PROFIT REPORT PDF
+// ======================================================
+
+public function exportProfitPDF(Request $request)
+{
+
+    // Get filtered data
+    $data = $this->getFilteredProfit($request);
+
+
+
+    // ==========================================
+    // CALCULATE TOTALS
+    // ==========================================
+    $totalSales = $data->sum('subtotal');
+
+    $totalCost = $data->sum('total_cost');
+
+    $totalProfit = $totalSales - $totalCost;
+
+
+
+    // Get company settings
+    $settings = Setting::first();
+
+
+
+    // ==========================================
+    // LOAD PDF VIEW
+    // ==========================================
+    $pdf = Pdf::loadView(
+        'backend.admin_backend.admin_sales_report.profit_pdf',
+
+        [
+
+            // Send data to Blade
+            'data' => $data,
+
+            // Totals
+            'totalSales' => $totalSales,
+            'totalCost' => $totalCost,
+            'totalProfit' => $totalProfit,
+
+            // Date filters
+            'from' => $request->from,
+            'to' => $request->to,
+
+            // Settings
+            'settings' => $settings,
+        ]
+    );
+
+
+
+    // Download PDF
+    return $pdf->download('profit_report.pdf');
+}
+
+
+
+
+
  //ADMIN PROFIT DATA CHART
 public function profitChartData(Request $request)
 {

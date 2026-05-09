@@ -116,7 +116,9 @@ body {
                 <div class="mb-2">
                     <label><input type="radio" name="payment" value="cash"> Cash</label><br>
                     <label><input type="radio" name="payment" value="transfer"> Bank Transfer</label><br>
-                    <label><input type="radio" name="payment" value="pos"> POS</label>
+                    <label><input type="radio" name="payment" value="pos"> POS</label><br>
+                    <label><input type="radio" name="payment" value="others"> Others</label>
+                    
                 </div>
 
 

@@ -31,6 +31,25 @@
     </div>
 
 </div>
+
+
+<!-- =========================================
+EXPORT BUTTONS
+========================================= -->
+<div class="mb-3 d-flex gap-2">
+
+    <!-- CSV BUTTON -->
+    <button class="btn btn-success" id="exportCSV">
+        Export CSV
+    </button>
+
+    <!-- PDF BUTTON -->
+    <button class="btn btn-danger" id="exportPDF">
+        Export PDF
+    </button>
+
+</div>
+
     <h5>Total Sales: ₦<span id="totalSales">0</span></h5>
     <h5 style="color:red;">Total Cost: ₦<span id="totalCost">0</span></h5>
     <h3 style="color:green;">Profit: ₦<span id="totalProfit">0</span></h3>
@@ -206,6 +225,46 @@ $('#from, #to').change(function(){
 
 // INITIAL LOAD
 loadChart();
+
+
+
+// =========================================
+// EXPORT CSV
+// =========================================
+$('#exportCSV').click(function(){
+
+    // Get filters
+    let search = $('#search').val();
+    let from = $('#from').val();
+    let to = $('#to').val();
+
+    // Redirect to CSV export route
+    window.location.href =
+        "{{ route('export.profit.csv') }}"
+        + "?search=" + search
+        + "&from=" + from
+        + "&to=" + to;
+});
+
+
+
+// =========================================
+// EXPORT PDF
+// =========================================
+$('#exportPDF').click(function(){
+
+    // Get filters
+    let search = $('#search').val();
+    let from = $('#from').val();
+    let to = $('#to').val();
+
+    // Redirect to PDF export route
+    window.location.href =
+        "{{ route('export.profit.pdf') }}"
+        + "?search=" + search
+        + "&from=" + from
+        + "&to=" + to;
+});
 
 </script>
 

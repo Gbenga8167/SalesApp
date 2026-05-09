@@ -124,7 +124,7 @@ $adminData = App\Models\User::findOrFail(Auth::user()->id);
                     <span>Settings</span>
                 </a>
                 <ul class="sub-menu">
-                    <li><a href="{{route('admin.settings')}}">App Settings</a></li>
+                    <li><a href="{{route('admin.settings')}}">Store Settings</a></li>
                 </ul>
             </li>
 

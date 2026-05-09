@@ -18,43 +18,141 @@ public function UpdateSettings(Request $request)
 {
     try {
 
+        // =========================================
+        // VALIDATE FORM INPUTS
+        // =========================================
         $request->validate([
+
+            // COMPANY NAME
             'company_name' => 'nullable|string|max:255',
+
+            // COMPANY ADDRESS
             'address' => 'nullable|string|max:255',
+
+            // COMPANY PHONE NUMBER
+            'phone_number' => 'nullable|string|max:40',
+
+            // COMPANY EMAIL
+            'email' => 'nullable|email|max:255',
+
+            // COMPANY LOGO
             'logo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+
+            // TIMEZONE
             'timezone' => 'nullable|string|max:100',
+
         ]);
 
+
+
+        // =========================================
+        // GET FIRST SETTINGS RECORD
+        // =========================================
         $setting = Setting::first();
 
+
+
+        // =========================================
+        // CREATE SETTINGS IF EMPTY
+        // =========================================
         if (!$setting) {
+
             $setting = new Setting();
+
         }
 
-        // IMAGE UPLOAD
+
+
+        // =========================================
+        // HANDLE LOGO UPLOAD
+        // =========================================
         if ($request->hasFile('logo')) {
 
-            if ($setting->logo && file_exists(public_path('uploads/settings/'.$setting->logo))) {
-                unlink(public_path('uploads/settings/'.$setting->logo));
+            // DELETE OLD LOGO
+            if (
+                $setting->logo
+                &&
+                file_exists(
+                    public_path('uploads/settings/'.$setting->logo)
+                )
+            ) {
+
+                unlink(
+                    public_path('uploads/settings/'.$setting->logo)
+                );
+
             }
 
-            $file = $request->file('logo');
-            $filename = time().'.'.$file->getClientOriginalExtension();
-            $file->move(public_path('uploads/settings'), $filename);
 
+
+            // GET FILE
+            $file = $request->file('logo');
+
+
+
+            // CREATE UNIQUE FILENAME
+            $filename = time().'.'.$file->getClientOriginalExtension();
+
+
+
+            // MOVE FILE
+            $file->move(
+                public_path('uploads/settings'),
+                $filename
+            );
+
+
+
+            // SAVE LOGO NAME
             $setting->logo = $filename;
         }
 
+
+
+        // =========================================
+        // SAVE COMPANY DETAILS
+        // =========================================
         $setting->company_name = $request->company_name;
+
         $setting->address = $request->address;
+
+        $setting->phone_number = $request->phone_number;
+
+        $setting->email = $request->email;
+
         $setting->timezone = $request->timezone;
 
+
+
+        // =========================================
+        // SAVE SETTINGS
+        // =========================================
         $setting->save();
 
-        return back()->with('success', 'Settings updated successfully!');
+
+
+        // =========================================
+        // SUCCESS MESSAGE
+        // =========================================
+        return back()->with(
+            'success',
+            'Settings updated successfully!'
+        );
+
+
 
     } catch (\Exception $e) {
-        return back()->with('error', 'Something went wrong. Please try again!');
+
+        // =========================================
+        // ERROR MESSAGE
+        // =========================================
+        return back()->with(
+            'error',
+            'Something went wrong. Please try again!'
+        );
+
     }
 }
+
+
 }

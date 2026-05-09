@@ -347,31 +347,63 @@ fetch("{{ route('admin.top.products.chart') }}")
 /* =========================
    PROFIT CHART
 ========================= */
-function loadDashboardChart(){
+let profitChartInstance;
+
+function loadProfitChart(){
 
     $.get("{{ route('admin.chart.7days') }}", function(res){
 
+        // 🔥 DESTROY OLD CHART FIRST
+        if(profitChartInstance){
+            profitChartInstance.destroy();
+        }
+
         let ctx = document.getElementById('profitChart').getContext('2d');
 
-        new Chart(ctx, {
+        profitChartInstance = new Chart(ctx, {
+
             type: 'bar',
+
             data: {
+
                 labels: res.labels,
+
                 datasets: [{
+
                     label: 'Last 7 Days Profit',
+
                     data: res.profits,
-                    
+
+                    borderWidth: 1
+
                 }]
+            },
+
+            options:{
+                responsive:true,
+
+                scales:{
+                    y:{
+                        beginAtZero:true,
+
+                        ticks:{
+                            callback:function(value){
+
+                                return "₦" + Number(value).toLocaleString('en-NG', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+
+                            }
+                        }
+                    }
+                }
             }
+
         });
 
     });
 }
-
-loadDashboardChart();
-
-
-
 
 
 /* =========================
@@ -384,6 +416,7 @@ $(document).ready(function(){
     loadPayment();
     loadDaily();
     loadTop();
+    loadProfitChart();
 
     // 🔥 LIVE REFRESH (NO PAGE RELOAD)
     setInterval(function(){
@@ -391,6 +424,7 @@ $(document).ready(function(){
         loadPayment();
         loadDaily();
         loadTop();
+        loadProfitChart();
     }, 5000); // 15 seconds (safe + smooth)
 
 });

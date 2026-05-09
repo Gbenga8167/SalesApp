@@ -184,6 +184,20 @@ Route::get('/sales-person/dashboard', function () {
     Route::get('/admin/profit-report-data', 'adminProfitReportData')->name('admin.profit.report.data');
     
 
+    // ==========================================
+// EXPORT PROFIT REPORT CSV
+// ==========================================
+// This route downloads the profit report as CSV
+    Route::get('/admin/export-profit-csv', 'exportProfitCSV')->name('export.profit.csv');
+
+
+// ==========================================
+// EXPORT PROFIT REPORT PDF
+// ==========================================
+// This route downloads the profit report as PDF
+     Route::get('/admin/export-profit-pdf', 'exportProfitPDF')->name('export.profit.pdf');
+     
+
     //ADMIN PROFIT DATA CHART
     Route::get('/admin/profit-chart-data', 'profitChartData')->name('admin.profit.chart.data'); 
     Route::get('/admin-chart-7days', 'profitChartLast7Days')->name('admin.chart.7days');

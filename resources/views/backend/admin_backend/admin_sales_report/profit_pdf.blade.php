@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <style>
+
         /* =========================================
            PAGE BODY
         ========================================== */
@@ -63,23 +66,56 @@
 
 
 
-        .divider {
-            border-bottom: 2px solid #198754;
-            margin: 10px 0 15px;
+        /* =========================================
+           DIVIDER LINE
+        ========================================== */
+        .divider{
+            border-bottom:2px solid #198754;
+            margin:10px 0 15px;
         }
 
-        .title {
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
+
+
+        /* =========================================
+           REPORT TITLE
+        ========================================== */
+        .report-title{
+            text-align:center;
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:5px;
         }
 
-        .date-range {
-            text-align: center;
-            font-size: 11px;
-            margin-bottom: 10px;
+
+
+        /* =========================================
+           DATE RANGE
+        ========================================== */
+        .date-range{
+            text-align:center;
+            font-size:11px;
+            margin-bottom:15px;
         }
+
+
+
+        /* =========================================
+           SUMMARY BOX
+        ========================================== */
+        .summary-table{
+            width:100%;
+            margin-bottom:15px;
+            border-collapse: collapse;
+        }
+
+        .summary-table td{
+            padding:10px;
+            border:1px solid #ddd;
+            font-size:12px;
+            font-weight:bold;
+        }
+
+
 
         /* =========================================
            MAIN REPORT TABLE
@@ -123,13 +159,6 @@
         }
 
 
-        .total {
-            margin-top: 12px;
-            text-align: right;
-            font-size: 14px;
-            font-weight: bold;
-            color: #198754;
-        }
 
         /* =========================================
            SIGNATURE SECTION
@@ -171,6 +200,7 @@
         }
 
 
+
         /* =========================================
            SYSTEM VERIFIED STAMP
         ========================================== */
@@ -184,16 +214,24 @@
             text-align:center;
         }
 
-        .footer {
-            margin-top: 25px;
-            text-align: center;
-            font-size: 10px;
-            color: #777;
+
+
+        /* =========================================
+           FOOTER
+        ========================================== */
+        .footer{
+            margin-top:25px;
+            text-align:center;
+            font-size:10px;
+            color:#777;
         }
 
     </style>
+
 </head>
+
 <body>
+
 
 
 <!-- =========================================
@@ -254,54 +292,190 @@
 
 
 
+<!-- DIVIDER -->
 <div class="divider"></div>
 
-<div class="title">SALES REPORT</div>
 
-<div style="text-align:center; font-size:11px; margin-bottom:10px;">
-    <strong>Date Range:</strong>
-    @if($from && $to)
-        {{ \Carbon\Carbon::parse($from)->format('d M Y') }} 
-        - 
-        {{ \Carbon\Carbon::parse($to)->format('d M Y') }}
-    @else
-        ALL RECORDS
-    @endif
+
+<!-- REPORT TITLE -->
+<div class="report-title">
+
+    PROFIT REPORT
+
 </div>
 
 
-<table class="report-table">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Salesperson</th>
-            <th>Receipt</th>
-            <th>Total</th>
-            <th>Payment</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($data as $i => $row)
-        <tr>
-            <td>{{ $i + 1 }}</td>
-            <td>{{ $row->salesperson_name }}</td>
-            <td>{{ $row->receipt_no }}</td>
-            <td>₦{{ number_format($row->total_amount, 2) }}</td>
-            <td>{{ $row->payment_method }}</td>
-            <td>
-                {{ \Carbon\Carbon::parse($row->created_at)
-                    ->timezone($settings->timezone ?? 'Africa/Lagos')
-                    ->format('d M Y, h:i A') }}
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
+
+<!-- DATE RANGE -->
+<div class="date-range">
+
+    <strong>Date Range:</strong>
+
+    @if($from && $to)
+
+        {{ \Carbon\Carbon::parse($from)->format('d M Y') }}
+
+        -
+
+        {{ \Carbon\Carbon::parse($to)->format('d M Y') }}
+
+    @else
+
+        ALL RECORDS
+
+    @endif
+
+</div>
+
+
+
+<!-- =========================================
+     SUMMARY SECTION
+========================================= -->
+<table class="summary-table">
+
+    <tr>
+
+        <!-- TOTAL SALES -->
+        <td style="color:#198754;">
+
+            Total Sales:
+            ₦{{ number_format($totalSales, 2) }}
+
+        </td>
+
+
+
+        <!-- TOTAL COST -->
+        <td style="color:red;">
+
+            Total Cost:
+            ₦{{ number_format($totalCost, 2) }}
+
+        </td>
+
+
+
+        <!-- TOTAL PROFIT -->
+        <td style="color:green;">
+
+            Total Profit:
+            ₦{{ number_format($totalProfit, 2) }}
+
+        </td>
+
+    </tr>
+
 </table>
 
-<div class="total">
-    Total Sales: ₦{{ number_format($total, 2) }}
-</div>
+
+
+<!-- =========================================
+     MAIN REPORT TABLE
+========================================= -->
+<table class="report-table">
+
+    <thead>
+
+        <tr>
+
+            <th>#</th>
+            <th>Salesperson</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Sales</th>
+            <th>Cost</th>
+            <th>Profit</th>
+            <th>Date</th>
+
+        </tr>
+
+    </thead>
+
+
+
+    <tbody>
+
+        @foreach($data as $index => $row)
+
+        <tr>
+
+            <!-- SERIAL NUMBER -->
+            <td>
+                {{ $index + 1 }}
+            </td>
+
+
+
+            <!-- SALESPERSON -->
+            <td>
+                {{ $row->salesperson_name }}
+            </td>
+
+
+
+            <!-- PRODUCT -->
+            <td>
+                {{ $row->product_name }}
+            </td>
+
+
+
+            <!-- CATEGORY -->
+            <td>
+                {{ $row->category }}
+            </td>
+
+
+
+            <!-- QUANTITY -->
+            <td>
+                {{ $row->quantity }}
+            </td>
+
+
+
+            <!-- SALES -->
+            <td>
+                ₦{{ number_format($row->subtotal, 2) }}
+            </td>
+
+
+
+            <!-- COST -->
+            <td>
+                ₦{{ number_format($row->total_cost, 2) }}
+            </td>
+
+
+
+            <!-- PROFIT -->
+            <td>
+                ₦{{ number_format($row->profit, 2) }}
+            </td>
+
+
+
+            <!-- DATE -->
+            <td>
+
+                {{
+                    \Carbon\Carbon::parse($row->created_at)
+                    ->timezone($settings->timezone ?? 'Africa/Lagos')
+                    ->format('d M Y, h:i A')
+                }}
+
+            </td>
+
+        </tr>
+
+        @endforeach
+
+    </tbody>
+
+</table>
+
 
 
 <!-- =========================================
@@ -351,13 +525,19 @@
 <!-- =========================================
      FOOTER
 ========================================= -->
-
 <div class="footer">
-    Generated on {{
-        \Carbon\Carbon::now($settings->timezone ?? 'Africa/Lagos')
-            ->format('d M Y, h:i A')
+
+    Generated on
+
+    {{
+        \Carbon\Carbon::now(
+            $settings->timezone ?? 'Africa/Lagos'
+        )->format('d M Y, h:i A')
     }}
+
 </div>
 
+
+
 </body>
-</html> 
+</html>
