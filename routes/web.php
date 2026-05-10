@@ -6,31 +6,33 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\SalespersonController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\SalesPerson\SalesPersonAccountController;
 use App\Http\Controllers\SalesPerson\SalesPersonPOSController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+/*Route::get('/', function () {
+    return view('welcome'); 
 });
+*/
 
-
-// Show login page if guest
-Route::get('/', [AuthenticatedSessionController::class, 'create'])
-    ->middleware('guest')
-    ->name('login');
-
-// If logged in, redirect to correct dashboard
 Route::get('/', function () {
-    $user = auth()->user();
 
-    if ($user->role == 1) {
+    // If user is NOT logged in
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    // If Admin
+    if (auth()->user()->role == 1) {
         return redirect()->route('admin.dashboard');
-    } elseif ($user->role == 2) {
+    }
+
+    // If Sales Person
+    if (auth()->user()->role == 2) {
         return redirect()->route('sales_person.dashboard');
-    } 
-})->middleware('auth');
+    }
+
+});
 
 
 
