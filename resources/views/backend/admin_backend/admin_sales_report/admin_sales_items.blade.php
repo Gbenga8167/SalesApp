@@ -158,9 +158,13 @@ function formatMoney(value){
 }
 
 /* LOAD ITEMS */
+/* LOAD ITEMS */
 function loadItems(){
 
-    $.get(`/admin/sales-items/${transactionId}`, {
+    let url = "{{ route('admin.sales.items', ':id') }}";
+    url = url.replace(':id', transactionId);
+
+    $.get(url, {
         search: $('#search').val(),
         from: $('#from').val(),
         to: $('#to').val()
@@ -169,6 +173,7 @@ function loadItems(){
         let html = '';
 
         res.data.forEach((item, index) => {
+
             html += `
                 <tr>
                     <td>${index + 1}</td>

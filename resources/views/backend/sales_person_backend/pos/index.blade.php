@@ -253,25 +253,54 @@ $(document).on('change', 'input[name="category"]', function () {
             return;
         }
 
+        // FORMAT PRICE WITH COMMA + DECIMAL
+        let formattedPrice = Number(product.selling_price).toLocaleString(
+            undefined,
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+
         let html = `
             <div class="card p-3 shadow-sm">
 
                 <h5>${product.product_name}</h5>
-                <p><strong>Category:</strong> ${product.category}</p>
-                <p><strong>Price:</strong>  ₦${product.selling_price}</p>
-                <p><strong>Available Stock:</strong> ${product.available_stock}</p>
 
-                <input type="number" id="qty" class="form-control mb-2" 
-                       placeholder="Enter quantity" min="1" max="${product.available_stock}">
+                <p>
+                    <strong>Category:</strong>
+                    ${product.category}
+                </p>
 
-                <button class="btn btn-success addToCart"
-                        data-id="${product.id}"
-                        data-name="${product.product_name}"
-                        data-price="${product.selling_price}"
-                        data-category="${product.category}"
-                        data-stock="${product.available_stock}"
-                        data-cost="${product.cost_price ?? 0}">
-                        Add To Cart
+                <p>
+                    <strong>Price:</strong>
+                    ₦${formattedPrice}
+                </p>
+
+                <p>
+                    <strong>Available Stock:</strong>
+                    ${product.available_stock}
+                </p>
+
+                <input
+                    type="number"
+                    id="qty"
+                    class="form-control mb-2"
+                    placeholder="Enter quantity"
+                    min="1"
+                    max="${product.available_stock}"
+                >
+
+                <button
+                    class="btn btn-success addToCart"
+                    data-id="${product.id}"
+                    data-name="${product.product_name}"
+                    data-price="${product.selling_price}"
+                    data-category="${product.category}"
+                    data-stock="${product.available_stock}"
+                    data-cost="${product.cost_price ?? 0}"
+                >
+                    Add To Cart
                 </button>
 
             </div>
@@ -340,12 +369,16 @@ $(document).on('click', '.addToCart', function () {
 // ===============================
 // REMOVE ITEM
 // ===============================
+
 $(document).on('click', '.removeItem', function(){
 
     let id = $(this).data('id');
 
+    let url = "{{ route('cart.remove', ':id') }}";
+    url = url.replace(':id', id);
+
     $.ajax({
-        url: "/cart/remove/" + id,
+        url: url,
         type: "POST",
         data: {
             _token: "{{ csrf_token() }}"
@@ -356,6 +389,7 @@ $(document).on('click', '.removeItem', function(){
     });
 
 });
+
 
 
 //SEARCH PRODUCT
@@ -455,7 +489,10 @@ $(document).on('click', '.loadPending', function(){
 
     let id = $(this).data('id');
 
-    $.post("/cart/load-pending/" + id, {
+    let url = "{{ route('cart.load.pending', ':id') }}";
+    url = url.replace(':id', id);
+
+    $.post(url, {
         _token: "{{ csrf_token() }}"
     }, function(){
 
@@ -467,26 +504,28 @@ $(document).on('click', '.loadPending', function(){
 });
 
 
-
 /*DELETE PENDING*/
+
 $(document).on('click', '.deletePending', function(){
 
     let id = $(this).data('id');
 
     if(!confirm('Delete this pending transaction?')) return;
 
-    $.post("/cart/delete-pending/" + id, {
+    let url = "{{ route('cart.delete.pending', ':id') }}";
+    url = url.replace(':id', id);
+
+    $.post(url, {
         _token: "{{ csrf_token() }}"
     }, function(res){
 
         if(res.status === 'deleted'){
-            loadPending(); // 🔥 refresh immediately
+            loadPending();
         }
 
     });
 
 });
-
 
 
 //PRINT AND CONFIRM BUTTON
@@ -517,8 +556,10 @@ $('#confirmBtn').click(function(){
 
             if(res.status === 'success'){
 
-                // 🔥 open receipt properly
-                window.open('/receipt/' + res.transaction_id, '_blank');
+                let receiptUrl = "{{ route('receipt.print', ':id') }}";
+                receiptUrl = receiptUrl.replace(':id', res.transaction_id);
+
+                window.open(receiptUrl, '_blank');
 
                 loadCart();
                 loadPending();
@@ -536,6 +577,7 @@ $('#confirmBtn').click(function(){
     });
 
 });
+
 
 //FORCE PAGE LOAD
 $(document).ready(function () {

@@ -174,7 +174,11 @@ function formatMoney(value){
 /* LOAD ITEMS */
 function loadItems(){
 
-    $.get(`/sales-items/${transactionId}`, {
+
+    let url = "{{ route('sales.items', ':id') }}";
+    url = url.replace(':id', transactionId);
+
+    $.get(url, {
         search: $('#search').val(),
         from: $('#from').val(),
         to: $('#to').val()
@@ -211,6 +215,8 @@ $('#search, #from, #to').on('keyup change', function(){
     loadItems();
 });
 
+
+
 /* SUGGESTIONS */
 $('#search').on('keyup', function () {
 
@@ -222,7 +228,10 @@ $('#search').on('keyup', function () {
         return;
     }
 
-    $.get(`/sales-items-suggestions/${transactionId}`, { q: query }, function (res) {
+let suggestionUrl = "{{ route('sales.items.suggestions', ':id') }}";
+suggestionUrl = suggestionUrl.replace(':id', transactionId);
+
+$.get(suggestionUrl, { q: query }, function (res) {
 
         let html = '';
 
@@ -269,9 +278,12 @@ $(document).on('click', function (e) {
 
 /* PRINT */
 $('#printBtn').click(function(){
-    window.open('/receipt/' + transactionId, '_blank');
-});
 
+    let url = "{{ route('receipt.print', ':id') }}";
+    url = url.replace(':id', transactionId);
+
+    window.open(url, '_blank');
+});
 </script>
 
 @endsection

@@ -127,7 +127,9 @@
 
         <!-- ACTIONS -->
         <div class="d-flex justify-content-between mb-3">
-            <a href="/admin/sales-items-page/{{ $transaction->id }}"><button class="btn btn-secondary">← Back</button></a>
+            <a href="{{ route('admin.sales.items.page', $transaction->id) }}">
+               <button class="btn btn-secondary">← Back</button>
+            </a>
         </div>
 
 
@@ -140,7 +142,7 @@ function printReceipt(){
 
 // AFTER PRINT → REDIRECT BACK
 window.onafterprint = function() {
-    window.location.href = "/admin/sales-items-page/{{ $transaction->id }}";
+    window.location.href = "{{ route('admin.sales.items.page', $transaction->id) }}";
 };
 
 </script>

@@ -9,6 +9,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="Themesdesign" name="author" />
+
+        <!-- JQUERY FOR OFFLINE-->
+        <script src="{{ asset('BackendTem/assets/libs/jquery/jquery.min.js') }}"></script> 
+
         <!-- App favicon -->
         <link rel="shortcut icon" href="{{asset('BackendTem/assets/images/favicon.ico')}}">
 
@@ -23,30 +27,25 @@
 
         <!-- Bootstrap Css -->
         <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" id="bootstrap-style" rel="stylesheet" type="text/css" />
-        <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" id="bootstrap-style" rel="stylesheet" type="text/css" />
 
-        
+        <!-- chart link -->
+         <script src="{{ asset('BackendTem/assets/js/chart.min.js') }}"></script>
+ 
         <!-- Icons Css -->
         <link href="{{asset('BackendTem/assets/css/icons.min.css')}}" rel="stylesheet" type="text/css" />
         <!-- App Css-->
 
-
         <link href="{{asset('BackendTem/assets/css/app.min.css')}}" id="app-style" rel="stylesheet" type="text/css" />
-        <link href="{{asset('BackendTem/assets/css/app.min.css')}}" id="app-style" rel="stylesheet" type="text/css" />
-
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-        <!--Font color-->       
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
         
        <!--Toaster Massage-->
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
+       <link rel="stylesheet" href="{{ asset('BackendTem/assets/libs/toastr/toastr.min.css') }}"> 
 
-        
-        <!--CHART LINK FOR BAR,PIE etc..-->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <style>
+                body {
+            font-family: 'Poppins', sans-serif;
+        }
+        </style>
 
     </head>
 
@@ -89,52 +88,7 @@
         <!-- END layout-wrapper -->
 
         <!-- Right Sidebar -->
-        <div class="right-bar">
-            <div data-simplebar class="h-100">
-                <div class="rightbar-title d-flex align-items-center px-3 py-4">
-            
-                    <h5 class="m-0 me-2">Settings</h5>
 
-                    <a href="javascript:void(0);" class="right-bar-toggle ms-auto">
-                        <i class="mdi mdi-close noti-icon"></i>
-                    </a>
-                </div>
-
-                <!-- Settings -->
-                <hr class="mt-0" />
-                <h6 class="text-center mb-0">Choose Layouts</h6>
-
-                <div class="p-4">
-                    <div class="mb-2">
-                        <img src="assets/images/layouts/layout-1.jpg" class="img-fluid img-thumbnail" alt="layout-1">
-                    </div>
-
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input theme-choice" type="checkbox" id="light-mode-switch" checked>
-                        <label class="form-check-label" for="light-mode-switch">Light Mode</label>
-                    </div>
-    
-                    <div class="mb-2">
-                        <img src="assets/images/layouts/layout-2.jpg" class="img-fluid img-thumbnail" alt="layout-2">
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input theme-choice" type="checkbox" id="dark-mode-switch" data-bsStyle="assets/css/bootstrap-dark.min.css" data-appStyle="assets/css/app-dark.min.css">
-                        <label class="form-check-label" for="dark-mode-switch">Dark Mode</label>
-                    </div>
-    
-                    <div class="mb-2">
-                        <img src="assets/images/layouts/layout-3.jpg" class="img-fluid img-thumbnail" alt="layout-3">
-                    </div>
-                    <div class="form-check form-switch mb-5">
-                        <input class="form-check-input theme-choice" type="checkbox" id="rtl-mode-switch" data-appStyle="assets/css/app-rtl.min.css">
-                        <label class="form-check-label" for="rtl-mode-switch">RTL Mode</label>
-                    </div>
-
-            
-                </div>
-
-            </div> <!-- end slimscroll-menu-->
-        </div>
         <!-- /Right-bar -->
 
         <!-- Right bar overlay-->
@@ -146,10 +100,6 @@
         <script src="{{asset('BackendTem/assets/libs/metismenu/metisMenu.min.js')}}"></script>
         <script src="{{asset('BackendTem/assets/libs/simplebar/simplebar.min.js')}}"></script>
         <script src="{{asset('BackendTem/assets/libs/node-waves/waves.min.js')}}"></script>
-
-        
-        <!-- apexcharts -->
-        <script src="{{asset('BackendTem/assets/libs/apexcharts/apexcharts.min.js')}}"></script>
 
         <!-- jquery.vectormap map -->
         <script src="{{asset('BackendTem/assets/libs/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.min.js')}}"></script>
@@ -168,8 +118,9 @@
         <!-- App js -->
         <script src="{{asset('BackendTem/assets/js/app.js')}}"></script>
 
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
+        <!-- Toater msg for error or success feed-back -->
+        <script src="{{ asset('BackendTem/assets/libs/toastr/toastr.min.js') }}"></script>
+    
 <script>
  @if(Session::has('message'))
  var type = "{{ Session::get('alert-type','info') }}"
@@ -200,11 +151,8 @@
    <!-- Datatable init js -->
    <script src="{{asset('BackendTem/assets/js/pages/datatables.init.js')}}"></script>
 
-
-      <!-- Delete toaster alert -->
-       
-   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
+    <!-- Delete toaster alert POP-UP-->
+    <script src="{{ asset('BackendTem/assets/libs/sweetalert2/sweetalert2.all.min.js') }}"></script>
   
    <script>
     

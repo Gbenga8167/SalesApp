@@ -216,7 +216,13 @@ ajax: {
             { 
                 data: 'id',
                 render: function(data){
-                    return `<a href="/admin/sales-items-page/${data}" class="btn btn-sm btn-primary">Sales History</a>`;
+                
+                    let url = "{{ route('admin.sales.items.page', ':id') }}";
+                    url = url.replace(':id', data);
+                
+                    return `<a href="${url}" class="btn btn-sm btn-primary">
+                                Sales History
+                            </a>`;
                 }
             }
         ],

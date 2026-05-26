@@ -158,97 +158,121 @@ function formatMoney(value){
 }
 
 /* =========================
-   GLOBAL LIVE FUNCTION
+   GLOBAL CHART INSTANCES
 ========================= */
 
 let salesChartInstance;
 let paymentChartInstance;
 let dailyChartInstance;
 let topChartInstance;
+let profitChartInstance;
+
+/* =========================
+   LIVE DASHBOARD
+========================= */
 
 function loadDashboard(){
 
-$.get("{{ route('admin.dashboard.data') }}", function(res){
+    $.get("{{ route('admin.dashboard.data') }}", function(res){
 
-    // ===== CARDS (LIVE) =====
-    $('#todaySales').text("₦" + formatMoney(res.todaySales));
-    $('#totalTransactions').text(res.totalTransactions);
-    $('#itemsSold').text(res.itemsSold);
+        // ===== CARDS =====
+        $('#todaySales').text("₦" + formatMoney(res.todaySales));
+        $('#totalTransactions').text(res.totalTransactions);
+        $('#itemsSold').text(res.itemsSold);
 
-    // ===== SALES CHART =====
-    if(res.salesChart.length){
+        // ===== SALES CHART =====
 
-        if(salesChartInstance){
-            salesChartInstance.destroy();
-        }
+        let labels = res.salesChart.map(i => i.hour);
+        let totals = res.salesChart.map(i => i.total);
 
-        salesChartInstance = new Chart(document.getElementById('salesChart'), {
-            type:'line',
-            data:{
-                labels: res.salesChart.map(i=>i.hour),
-                datasets:[{
-                    label:"Total Sales (₦)",
-                    data: res.salesChart.map(i=>i.total),
-                    tension:0.4,
-                    borderWidth:2
-                }]
-            },
-            options:{
-                plugins:{
-                    tooltip:{
-                        callbacks:{
-                            title: function(context){
-                                return "Time: " + context[0].label;
-                            },
-                            label: function(context){
-                                let value = context.raw || 0;
+        // CREATE ONLY ONCE
+        if(!salesChartInstance){
 
-                                return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
+            salesChartInstance = new Chart(document.getElementById('salesChart'), {
+
+                type:'line',
+
+                data:{
+                    labels: labels,
+                    datasets:[{
+                        label:"Total Sales (₦)",
+                        data: totals,
+                        tension:0.4,
+                        borderWidth:2
+                    }]
+                },
+
+                options:{
+                    responsive:true,
+
+                    plugins:{
+                        tooltip:{
+                            callbacks:{
+                                title: function(context){
+                                    return "Time: " + context[0].label;
+                                },
+                                label: function(context){
+                                    let value = context.raw || 0;
+
+                                    return "Sales: ₦" + Number(value).toLocaleString('en-NG', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                }
                             }
                         }
-                    }
-                },
-                scales:{
-                    y:{
-                        beginAtZero:true,
-                        ticks:{
-                            callback: function(value){
-                                return "₦" + Number(value).toLocaleString('en-NG', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
+                    },
+
+                    scales:{
+                        y:{
+                            beginAtZero:true,
+                            ticks:{
+                                callback: function(value){
+                                    return "₦" + Number(value).toLocaleString('en-NG', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-    }
 
-});
+            });
+
+        } else {
+
+            // UPDATE EXISTING CHART
+            salesChartInstance.data.labels = labels;
+            salesChartInstance.data.datasets[0].data = totals;
+            salesChartInstance.update();
+
+        }
+
+    });
 }
 
 /* =========================
    PAYMENT CHART
 ========================= */
+
 function loadPayment(){
+
 fetch("{{ route('admin.payment.chart') }}")
 .then(r=>r.json())
 .then(data=>{
 
-    if(paymentChartInstance){
-        paymentChartInstance.destroy();
-    }
-
     paymentChartInstance = new Chart(document.getElementById('paymentChart'), {
+
         type:'pie',
+
         data:{
             labels:data.map(i=>i.payment_method),
-            datasets:[{data:data.map(i=>i.total)}]
+            datasets:[{
+                data:data.map(i=>i.total)
+            }]
         }
+
     });
 
 });
@@ -257,20 +281,20 @@ fetch("{{ route('admin.payment.chart') }}")
 /* =========================
    DAILY CHART
 ========================= */
+
 function loadDaily(){
 
 fetch("{{ route('admin.daily.chart') }}")
 .then(r=>r.json())
 .then(data=>{
 
-    if(dailyChartInstance){
-        dailyChartInstance.destroy();
-    }
-
     dailyChartInstance = new Chart(document.getElementById('dailySalesChart'), {
+
         type:'line',
+
         data:{
             labels:data.map(i=>i.date),
+
             datasets:[{
                 label:"Last 7 Days Sales (₦)",
                 data:data.map(i=>i.total),
@@ -278,7 +302,10 @@ fetch("{{ route('admin.daily.chart') }}")
                 tension:0.4
             }]
         },
+
         options:{
+            responsive:true,
+
             plugins:{
                 tooltip:{
                     callbacks:{
@@ -296,9 +323,11 @@ fetch("{{ route('admin.daily.chart') }}")
                     }
                 }
             },
+
             scales:{
                 y:{
                     beginAtZero:true,
+
                     ticks:{
                         callback: function(value){
                             return "₦" + Number(value).toLocaleString('en-NG', {
@@ -310,6 +339,7 @@ fetch("{{ route('admin.daily.chart') }}")
                 }
             }
         }
+
     });
 
 });
@@ -318,45 +348,38 @@ fetch("{{ route('admin.daily.chart') }}")
 /* =========================
    TOP PRODUCTS
 ========================= */
+
 function loadTop(){
+
 fetch("{{ route('admin.top.products.chart') }}")
 .then(r=>r.json())
 .then(data=>{
 
-    if(topChartInstance){
-        topChartInstance.destroy();
-    }
-
     topChartInstance = new Chart(document.getElementById('topProductsChart'), {
+
         type:'bar',
+
         data:{
             labels:data.map(i=>i.product_label),
+
             datasets:[{
                 label:"Qty Sold",
                 data:data.map(i=>i.total_qty)
             }]
         }
+
     });
 
 });
 }
 
-
-
-
 /* =========================
    PROFIT CHART
 ========================= */
-let profitChartInstance;
 
 function loadProfitChart(){
 
     $.get("{{ route('admin.chart.7days') }}", function(res){
-
-        // 🔥 DESTROY OLD CHART FIRST
-        if(profitChartInstance){
-            profitChartInstance.destroy();
-        }
 
         let ctx = document.getElementById('profitChart').getContext('2d');
 
@@ -405,27 +428,27 @@ function loadProfitChart(){
     });
 }
 
-
 /* =========================
-   INIT LIVE SYSTEM
+   INIT
 ========================= */
 
 $(document).ready(function(){
 
-    loadDashboard();
+    // LOAD ONCE
     loadPayment();
     loadDaily();
     loadTop();
     loadProfitChart();
 
-    // 🔥 LIVE REFRESH (NO PAGE RELOAD)
+    // LIVE ONLY
+    loadDashboard();
+
+    // REFRESH ONLY LIVE DATA
     setInterval(function(){
+
         loadDashboard();
-        loadPayment();
-        loadDaily();
-        loadTop();
-        loadProfitChart();
-    }, 5000); // 15 seconds (safe + smooth)
+
+    }, 15000);
 
 });
 

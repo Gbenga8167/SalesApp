@@ -89,19 +89,29 @@
     </div> 
 </div>
 
+<script src="{{ asset('BackendTem/assets/libs/jquery/jquery.min.js') }}"></script>
+
 <script>
-  $(document).ready(function(){
- $('#image').on("change", function(e){
-    var reader = new FileReader();
-    reader.onload = function(e){
-        $('#ShowImage').attr('src', e.target.result);
-    }
-    reader.readAsDataURL(e.target.files['0']);
- });
+
+$(document).ready(function () {
+
+    $('#image').change(function (e) {
+
+        let reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            $('#ShowImage').attr('src', e.target.result);
+
+        }
+
+        reader.readAsDataURL(e.target.files[0]);
 
     });
+
+});
+
 </script>
-  
 
 
 

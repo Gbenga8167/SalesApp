@@ -119,10 +119,27 @@
 <label>Timezone</label>
 
 <select name="timezone" class="form-control">
-    <option value="Africa/Lagos" {{ $setting->timezone == 'Africa/Lagos' ? 'selected' : '' }}>Africa/Lagos</option>
-    <option value="Europe/London" {{ $setting->timezone == 'Europe/London' ? 'selected' : '' }}>Europe/London</option>
-    <option value="America/New_York" {{ $setting->timezone == 'America/New_York' ? 'selected' : '' }}>America/New_York</option>
-    <option value="Asia/Dubai" {{ $setting->timezone == 'Asia/Dubai' ? 'selected' : '' }}>Asia/Dubai</option>
+
+    <option value="Africa/Lagos"
+        {{ optional($setting)->timezone == 'Africa/Lagos' ? 'selected' : '' }}>
+        Africa/Lagos
+    </option>
+
+    <option value="Europe/London"
+        {{ optional($setting)->timezone == 'Europe/London' ? 'selected' : '' }}>
+        Europe/London
+    </option>
+
+    <option value="America/New_York"
+        {{ optional($setting)->timezone == 'America/New_York' ? 'selected' : '' }}>
+        America/New_York
+    </option>
+
+    <option value="Asia/Dubai"
+        {{ optional($setting)->timezone == 'Asia/Dubai' ? 'selected' : '' }}>
+        Asia/Dubai
+    </option>
+
 </select>
 </div>
 

@@ -193,7 +193,13 @@ $(document).ready(function () {
             { 
                 data: 'id',
                 render: function(data){
-                    return `<a href="/sales-items-page/${data}" class="btn btn-sm btn-primary">View Items</a>`;
+                
+                    let url = "{{ route('sales.items.page', ':id') }}";
+                    url = url.replace(':id', data);
+                
+                    return `<a href="${url}" class="btn btn-sm btn-primary">
+                                Sales History
+                            </a>`;
                 }
             }
         ],

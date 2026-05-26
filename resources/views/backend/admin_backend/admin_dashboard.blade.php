@@ -9,8 +9,9 @@
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="Themesdesign" name="author" />
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <!-- App favicon -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+        <!-- JQUERY FOR OFFLINE-->
+        <script src="{{ asset('BackendTem/assets/libs/jquery/jquery.min.js') }}"></script> 
 
         <!-- App favicon -->
         <link rel="shortcut icon" href="{{asset('BackendTem/assets/images/favicon.ico')}}">
@@ -26,31 +27,19 @@
 
         <!-- Bootstrap Css -->
         <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" id="bootstrap-style" rel="stylesheet" type="text/css" />
-        <link href="{{asset('BackendTem/assets/css/bootstrap.min.css')}}" id="bootstrap-style" rel="stylesheet" type="text/css" />
-
 
         <!-- chart link -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-        
+         <script src="{{ asset('BackendTem/assets/js/chart.min.js') }}"></script>
+ 
         <!-- Icons Css -->
         <link href="{{asset('BackendTem/assets/css/icons.min.css')}}" rel="stylesheet" type="text/css" />
         <!-- App Css-->
 
-
         <link href="{{asset('BackendTem/assets/css/app.min.css')}}" id="app-style" rel="stylesheet" type="text/css" />
-        <link href="{{asset('BackendTem/assets/css/app.min.css')}}" id="app-style" rel="stylesheet" type="text/css" />
-
-
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         
        <!--Toaster Massage-->
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" >
+       <link rel="stylesheet" href="{{ asset('BackendTem/assets/libs/toastr/toastr.min.css') }}"> 
 
-        <!-- Poppins Font -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
         <style>
                 body {
@@ -113,10 +102,7 @@
         <script src="{{asset('BackendTem/assets/libs/simplebar/simplebar.min.js')}}"></script>
         <script src="{{asset('BackendTem/assets/libs/node-waves/waves.min.js')}}"></script>
 
-        
-        <!-- apexcharts -->
-        <script src="{{asset('BackendTem/assets/libs/apexcharts/apexcharts.min.js')}}"></script>
-
+      
         <!-- jquery.vectormap map -->
         <script src="{{asset('BackendTem/assets/libs/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.min.js')}}"></script>
         <script src="{{asset('BackendTem/assets/libs/admin-resources/jquery.vectormap/maps/jquery-jvectormap-us-merc-en.js')}}"></script>
@@ -134,7 +120,8 @@
         <!-- App js -->
         <script src="{{asset('BackendTem/assets/js/app.js')}}"></script>
 
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <!-- Toater msg for error or success feed-back -->
+        <script src="{{ asset('BackendTem/assets/libs/toastr/toastr.min.js') }}"></script>
 
 <script>
  @if(Session::has('message'))
@@ -167,9 +154,10 @@
    <script src="{{asset('BackendTem/assets/js/pages/datatables.init.js')}}"></script>
 
 
-      <!-- Delete toaster alert -->
-       
-   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+      <!-- Delete toaster alert POP-UP-->
+    <script src="{{ asset('BackendTem/assets/libs/sweetalert2/sweetalert2.all.min.js') }}"></script>
+
+   
 
   
    <script>

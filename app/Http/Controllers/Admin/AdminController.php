@@ -45,12 +45,11 @@ class AdminController extends Controller
         $request->validate([
 
         'user_name'  => ['required', 'regex:/^[a-zA-Z0-9_]+$/'],
-        'email'     => ['required', 'email:rfc,dns'],
+        'email'     => ['required'],
         'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'], 
         ],
 
         [
-        'email.email' => 'Please enter a valid email address (example: name@example.com).',
         'user_name.regex'  => 'Username can only contain letters, numbers, and underscore.',
         'photo.image' => 'Uploaded file must be an image.',        
         ]);
@@ -271,6 +270,25 @@ private function getMysqlOffset($timezone)
 
 
 
+// ================= CONVERT LOCAL DATE RANGE TO UTC =================
+private function convertDateRangeToUTC($from, $to)
+{
+    $settings = Setting::first();
+
+    $timezone = $settings->timezone ?? 'Africa/Lagos';
+
+    $start = Carbon::parse($from, $timezone)
+        ->startOfDay()
+        ->timezone('UTC');
+
+    $end = Carbon::parse($to, $timezone)
+        ->endOfDay()
+        ->timezone('UTC');
+
+    return [$start, $end];
+}
+
+
 
 
 //ADMIN SALES REPORT 
@@ -313,10 +331,15 @@ public function adminSalesHistoryData(Request $request)
 
     // 📅 DATE RANGE
     if ($request->from && $request->to) {
-        $query->whereBetween('sales_transactions.created_at', [
-            $request->from . ' 00:00:00',
-            $request->to . ' 23:59:59'
-        ]);
+[$start, $end] = $this->convertDateRangeToUTC(
+    $request->from,
+    $request->to
+);
+
+$query->whereBetween('sales_transactions.created_at', [
+    $start,
+    $end
+]);
     }
 
     $settings = Setting::first();
@@ -386,10 +409,15 @@ private function getFilteredSales($request)
 
     // 📅 DATE FILTER
     if ($request->from && $request->to) {
-        $query->whereBetween('sales_transactions.created_at', [
-            $request->from . ' 00:00:00',
-            $request->to . ' 23:59:59'
-        ]);
+[$start, $end] = $this->convertDateRangeToUTC(
+    $request->from,
+    $request->to
+);
+
+$query->whereBetween('sales_transactions.created_at', [
+    $start,
+    $end
+]);
     }
 
     return $query->orderBy('sales_transactions.id', 'desc')->get();
@@ -566,10 +594,15 @@ public function adminProfitReportData(Request $request)
 
     // 📅 DATE FILTER
     if (!empty($request->from) && !empty($request->to)) {
-        $query->whereBetween('sales_transactions.created_at', [
-            $request->from . ' 00:00:00',
-            $request->to . ' 23:59:59'
-        ]);
+[$start, $end] = $this->convertDateRangeToUTC(
+    $request->from,
+    $request->to
+);
+
+$query->whereBetween('sales_transactions.created_at', [
+    $start,
+    $end
+]);
     }
 
     $total = $query->count();
@@ -697,13 +730,15 @@ private function getFilteredProfit(Request $request)
     if ($request->from && $request->to) {
 
         // Filter by transaction date
-        $query->whereBetween(
-            'sales_transactions.created_at',
-            [
-                $request->from . ' 00:00:00',
-                $request->to . ' 23:59:59'
-            ]
-        );
+[$start, $end] = $this->convertDateRangeToUTC(
+    $request->from,
+    $request->to
+);
+
+$query->whereBetween('sales_transactions.created_at', [
+    $start,
+    $end
+]);
     }
 
 
@@ -938,10 +973,15 @@ public function profitChartData(Request $request)
 
     // 📅 DATE FILTER
     if (!empty($request->from) && !empty($request->to)) {
-        $query->whereBetween('sales_transactions.created_at', [
-            $request->from . ' 00:00:00',
-            $request->to . ' 23:59:59'
-        ]);
+[$start, $end] = $this->convertDateRangeToUTC(
+    $request->from,
+    $request->to
+);
+
+$query->whereBetween('sales_transactions.created_at', [
+    $start,
+    $end
+]);
     }
 
     // 🔥 GROUP BY DATE
@@ -1036,10 +1076,15 @@ public function leaderboardData(Request $request)
 
     // 📅 DATE FILTER
     if (!empty($request->from) && !empty($request->to)) {
-        $query->whereBetween('sales_transactions.created_at', [
-            $request->from . ' 00:00:00',
-            $request->to . ' 23:59:59'
-        ]);
+[$start, $end] = $this->convertDateRangeToUTC(
+    $request->from,
+    $request->to
+);
+
+$query->whereBetween('sales_transactions.created_at', [
+    $start,
+    $end
+]);
     }
 
     $data = $query
